@@ -11,7 +11,7 @@ import (
 
 var db *gorm.DB
 
-func InitDB() *gorm.DB {
+func InitDB() {
 	// コンテナに設定されている環境変数を読み込む
 	mysqlHost := os.Getenv("MYSQL_HOST")
 	mysqlPort := os.Getenv("MYSQL_PORT")
@@ -23,15 +23,17 @@ func InitDB() *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", mysqlUser, mysqlPassword, mysqlHost, mysqlPort, mysqlDatabase)
 
 	// DBに接続する
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	var err error
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil { // DBに接続できなかった場合
 		logging.LogError("Error connecting to database", err)
 	} else { // DBに接続できた場合
 		fmt.Println("Connected to database")
 	}
-	return db
+
 }
 
 func GetDB() *gorm.DB {
+	
 	return db
 }
