@@ -25,12 +25,14 @@ type CustomError struct {
 const ( // カスタムエラーの名前を追加していく
 	UncategorizedError Code = iota // 未分類のエラー
 	UnauthorizedError              // 認証を失敗したエラー
+	ResourceNotFoundError          // 対応するリソースが見つからなかったエラー
 )
 
 // 各エラーに対応するエラーメッセージを定義
 var errorMessages = map[Code]string{
 	UncategorizedError: "An unexpected error has occurred",
 	UnauthorizedError:  "failed to authorize",
+	ResourceNotFoundError: "resource not found",
 }
 
 // カスタムエラーを作成する関数

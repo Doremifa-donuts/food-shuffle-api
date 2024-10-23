@@ -21,3 +21,14 @@ func CheckJtiUser(db *gorm.DB, userUuid string, jtiToken string) (bool, error) {
 	}
 	return true, nil
 }
+
+// メールアドレスが一致するユーザーを取得する
+func GetUserByMailAddress(db *gorm.DB, mailAddress string) (model.User, error) {
+	var user model.User
+	// メールアドレスが一致するユーザーを取得する
+	err := db.Where("mail_address = ?", mailAddress).First(&user).Error
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}

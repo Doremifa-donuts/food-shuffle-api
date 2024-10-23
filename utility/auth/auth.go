@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -20,7 +21,8 @@ func GenerateToken(entity interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	jtiString := jti.String()
+	// jtiにプレフィックスを付与
+	jtiPrefix := jti.String()
 
 	// トークンを検証するために必要なjtiをDBに格納
 	// 引数の型によってJTIを保存する
@@ -30,25 +32,27 @@ func GenerateToken(entity interface{}) (string, error) {
 		// UUIDを取り出す
 		UUID = e.UserUuid
 		// jtiにプレフィックスを付与
-		jtiString = "u-" + jtiString
-		if err := repository.SaveJtiByUserUuid(repository.GetDB(), e.UserUuid, jtiString); err != nil {
+		jtiPrefix = "u-" + jtiPrefix
+		if err := repository.SaveJtiByUserUuid(repository.GetDB(), e.UserUuid, jtiPrefix); err != nil {
 			return "", err
 		}
 	case *model.RestoUser:
 		// UUIDを取り出す
 		UUID = e.RestoUuid
 		// jtiにプレフィックスを付与
-		jtiString = "r-" + jtiString
-		if err := repository.SaveJtiByRestoUuid(repository.GetDB(), e.RestoUuid, jtiString); err != nil {
+		jtiPrefix = "r-" + jtiPrefix
+		if err := repository.SaveJtiByRestoUuid(repository.GetDB(), e.RestoUuid, jtiPrefix); err != nil {
 			return "", err
 		}
 	default:
 		return "", fmt.Errorf("unsupported entity type")
 	}
 
+	fmt.Println("生成したjti", jtiPrefix)
+
 	// クレームに使用するjtiとUUIDを設定
 	claims := jwt.MapClaims{
-		"jti": jti.String(),
+		"jti": jtiPrefix,
 		"id":  UUID,
 		"exp": time.Now().Add(time.Second * time.Duration(Expire)).Unix(), // トークンの有効期限を1年に設定
 	}
@@ -59,6 +63,15 @@ func GenerateToken(entity interface{}) (string, error) {
 
 // JWTトークンを検証する関数
 func ValidateToken(tokenString string) (string, error) {
+
+	// Bearerプレフィックスをチェック
+	if len(tokenString) > 7 && strings.HasPrefix(tokenString, "Bearer ") {
+		// プレフィックスを外してトークンを取得
+		tokenString = tokenString[7:]
+	}
+
+	// 受信したトークンを検証する
+	fmt.Println(tokenString)
 	// トークンを検証
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -68,8 +81,10 @@ func ValidateToken(tokenString string) (string, error) {
 		return []byte(SecretKey), nil
 	})
 	if err != nil {
+		fmt.Println(err)
 		return "", err
 	}
+	fmt.Println("署名は検証できた")
 
 	// トークンをアサーション
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -77,6 +92,7 @@ func ValidateToken(tokenString string) (string, error) {
 		logging.LogError("invalid token", custom_error.NewError(custom_error.UncategorizedError))
 		return "", fmt.Errorf("invalid token")
 	}
+	fmt.Println(claims)
 
 	// トークンからjtiを取得
 	jti, ok := claims["jti"].(string)

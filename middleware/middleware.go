@@ -4,7 +4,10 @@ import (
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+
 	"net/http"
+
+	"food-shuffle-api/utility/enbox"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,10 +22,10 @@ func Auth() gin.HandlerFunc {
 		// トークンが設定されていなければエラーを返す
 		if tokenString == "" {
 			// エラーログを書き込む
-			logging.LogError("Authorization header not found", custom_error.NewError(custom_error.UncategorizedError))
+			logging.LogError("Authorization header not found", custom_error.NewError(custom_error.ResourceNotFoundError))
 
 			// エラーレスポンスを返す
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header not found"})
+			enbox.ResponseJson(c, http.StatusUnauthorized, nil)
 
 			// 処理を終了する
 			c.Abort()
@@ -36,8 +39,7 @@ func Auth() gin.HandlerFunc {
 			logging.LogError("Error validating token:", err)
 
 			// エラーレスポンスを返す
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Error validating token"})
-
+			enbox.ResponseJson(c, http.StatusUnauthorized, nil)
 			// 処理を終了する
 			c.Abort()
 			return

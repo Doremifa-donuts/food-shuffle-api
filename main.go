@@ -5,6 +5,7 @@ import (
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
 	"food-shuffle-api/server"
+	"food-shuffle-api/utility/auth"
 	"os"
 )
 
@@ -13,10 +14,13 @@ func main() {
 	logging.InitLogging()
 
 	// DBを初期化する
-	db := repository.InitDB()
+	repository.InitDB()
 
 	// モデルを初期化する
-	model.MigrateDB(db)
+	model.MigrateDB(repository.GetDB())
+
+	// 認証関連のモデルを初期化する
+	auth.InitAuth()
 
 	// ginを初期化する
 	router := server.InitGin()
