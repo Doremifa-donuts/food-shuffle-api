@@ -8,6 +8,10 @@ import (
 )
 
 func MigrateDB(db *gorm.DB) {
+	// DBのテーブルが存在する場合はマイグレートをスキップする
+	if db.Migrator().HasTable(&User{}) {
+		return
+	}
 	// DBのマイグレーションを実行する
 	if err := db.AutoMigrate(&User{}, &RestoUser{}, &Group{}, &GroupSubmission{}, &Review{}, &ReviewFavorite{}, &ReviewArchive{}, &Course{}, &UrgentCampaign{}, &GroupSharedReviews{}, &Reservation{}); err != nil {
 		logging.LogError("Error migrating database", err)

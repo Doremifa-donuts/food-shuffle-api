@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
+	"io"
 	"os"
 	"time"
 
@@ -23,22 +24,21 @@ func InitGin() *gin.Engine {
 
 	router.Use(gin.Recovery(), gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/metrics"},
-		Output:    AccessLogFile,
+		Output:    io.MultiWriter(AccessLogFile, os.Stdout),
 		Formatter: func(param gin.LogFormatterParams) string {
-			return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
+			return fmt.Sprintf("%s - [%s] \"%s %s %d %s\" \"%s\"\n",
 				param.ClientIP,
 				param.TimeStamp.Format(time.RFC3339),
 				param.Method,
 				param.Path,
-				param.Request.Proto,
 				param.StatusCode,
 				param.Latency,
-				param.Request.UserAgent(),
 				param.ErrorMessage,
 			)
 		},
 	}))
 
+	// gin.DefaultWriter = io.MultiWriter(AccessLogFile, os.Stdout)
 	// 接続確認用のwebページを読み込む
 	checkConnectionRoute(router)
 
