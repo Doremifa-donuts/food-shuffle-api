@@ -1,23 +1,29 @@
 package middleware
 
 import (
+	"errors"
 	logging "food-shuffle-api/log"
+	"food-shuffle-api/model"
+	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
 
 	"net/http"
 
-	"food-shuffle-api/utility/enbox"
+	"food-shuffle-api/utility/conversion"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 )
 
+// ユーザーの認証を行い、対象のuuidをコンテキストに格納する
 func Auth() gin.HandlerFunc {
 
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		// 認証が終了するまで待機する
 		// ヘッダーからトークンの文字列を取得する
-		tokenString := c.GetHeader("Authorization")
+		tokenString := ctx.GetHeader("Authorization")
 
 		// トークンが設定されていなければエラーを返す
 		if tokenString == "" {
@@ -25,10 +31,10 @@ func Auth() gin.HandlerFunc {
 			logging.LogError("Authorization header not found", custom_error.NewError(custom_error.ResourceNotFoundError))
 
 			// エラーレスポンスを返す
-			enbox.ResponseJson(c, http.StatusUnauthorized, nil)
+			conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
 
 			// 処理を終了する
-			c.Abort()
+			ctx.Abort()
 			return
 		}
 
@@ -38,17 +44,130 @@ func Auth() gin.HandlerFunc {
 			// エラーログを書き込む
 			logging.LogError("Error validating token:", err)
 
-			// エラーレスポンスを返す
-			enbox.ResponseJson(c, http.StatusUnauthorized, nil)
+			// エラーによって異なるレスポンスを返す
+			// カスタムエラーの変数を宣言
+			var customErr *custom_error.CustomError
+
+			// カスタムエラーにキャスト可能か確認する
+			// キャスト可能な場合、自身で定義したビジネスロジック上のエラーなので、適切なレスポンスを返す
+			if errors.As(err, &customErr) {
+				// switch customErr.Code() {
+				// case custom_error.UnauthorizedError:	// 認証に失敗した場合
+				// 	logging.LogError("Unauthorized", err)
+
+				// case custom_error.ResourceNotFoundError:	// トークンの取得に失敗した場合
+				// 	logging.LogError("Token not found", err)
+
+				// case custom_error.AssertionFailedError:	// トークンのレコードのアサーションに失敗した場合
+				// 	logging.LogError("Assertion failed", err)
+
+				// case custom_error.TokenExpiredError:	// トークン有効期限が切れていた場合
+				// 	logging.LogError("Token expired", err)
+
+				// default:
+				// 	logging.LogError("Unknown error", err) // エラー分岐の分類漏れ対策
+				// }
+				// エラー文は発生した時点でログに書き込んだことが良い気がするのでレスポンス分けたいエラー以外はそこまで詳しく分類しなくていいかもしれない
+				conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
+				ctx.Abort()
+				return
+			}
+
+			// mysqlのエラー
+			// mysqlエラー型の定義
+			var mySQLError *mysql.MySQLError
+			if errors.As(err, &mySQLError) {
+				logging.LogError("mysql error", err)
+				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+				ctx.Abort()
+				return
+			}
+
+			// その他のエラー
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 			// 処理を終了する
-			c.Abort()
+			ctx.Abort()
 			return
 		}
 
 		// 認証に成功したUUIDをコンテキストに格納する
-		c.Set("uuid", uuid)
+		ctx.Set("uuid", uuid)
 
 		// 次の処理へ
-		c.Next()
+		ctx.Next()
+	}
+}
+
+// ユーザーのアカウントが適切かを判定する
+func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
+	// idが存在しなければエラーを返す
+	if uuid == "" {
+		// エラーログを書き込む
+		logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		// 処理を終了する
+		ctx.Abort()
+		}
+
+	// ユーザーのアカウントタイプをチェック
+	err := repository.IsUserType(uuid, userType)
+	if err != nil {
+		// エラーを分類する
+		// リソースが見つからない場合は、権限のないエンドポイントへの通信を行ったことを意味する
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// エラーログを書き込む
+			logging.LogError("Your user type does not have permission to access this resource.", err)
+
+			// エラーレスポンスを返す
+			conversion.ResponseJson(ctx, http.StatusForbidden, nil)
+
+			// 処理を終了する
+			ctx.Abort()
+			return
+		}
+
+		// mysqlのエラー
+		logging.LogError("mysql error", err)
+
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		// 処理を終了する
+		ctx.Abort()
+		return
+	}
+
+	// 次の処理へ
+	ctx.Next()
+}
+
+// ユーザータイプが一般ユーザーであることを確認する
+func AllowGeneralUsers() gin.HandlerFunc{
+	return func(ctx *gin.Context) {
+		//
+		uuid, ok := ctx.Get("uuid")
+		if !ok {
+			logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+			ctx.Abort()
+			return
+		}
+		authorizeUserType(ctx, uuid.(string), model.General)
+	}
+}
+
+// ユーザータイプがレストランユーザーであることを確認する
+func AllowRestaurantUsers() gin.HandlerFunc{
+	return func(ctx *gin.Context) {
+		//
+		uuid, ok := ctx.Get("uuid")
+		if !ok {
+			logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+			ctx.Abort()
+			return
+		}
+		authorizeUserType(ctx, uuid.(string), model.Restaurant)
 	}
 }

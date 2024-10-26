@@ -12,14 +12,14 @@ func SaveJtiByUserUuid(db *gorm.DB, userUuid string, jtiToken string) error {
 }
 
 // UserUUIDとJtiTokenの組み合わせが一致するか確認
-func CheckJtiUser(db *gorm.DB, userUuid string, jtiToken string) (bool, error) {
+func CheckJtiUser(db *gorm.DB, userUuid string, jtiToken string) error {
 	var user model.User
 	// UserUUIDとJtiTokenの組み合わせが一致するか確認
 	err := db.Where("user_uuid = ? AND jti_token = ?", userUuid, jtiToken).First(&user).Error
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return  nil
 }
 
 // メールアドレスが一致するユーザーを取得する
@@ -31,4 +31,14 @@ func GetUserByMailAddress(db *gorm.DB, mailAddress string) (model.User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+// ユーザーUUIDが一致するユーザーのアカウントタイプを取得する
+func IsUserType(uuid string, userType model.UserType) error {
+	var user model.User
+	err := db.Where("user_uuid = ? AND user_type = ?", uuid, userType).First(&user).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

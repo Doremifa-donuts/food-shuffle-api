@@ -7,7 +7,7 @@ import (
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/utility/custom_error"
-	"food-shuffle-api/utility/enbox"
+	"food-shuffle-api/utility/conversion"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,22 +18,29 @@ import (
 var UserService = service.UserService{}
 
 // ログイン処理
-func LoginHandler(c *gin.Context) {
-	// リクエストボディを取得する
+func LoginHandler(ctx *gin.Context) {
+	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
+	if ctx.GetHeader("Content-Type") != "application/json" {
+		logging.LogError("Content-Type is not application/json", custom_error.NewError(custom_error.InvalidDataError))
+
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
+		return
+	}
 
 	// 取得したパラメータを格納する構造体を宣言
 	var user model.User
 	// リクエストボディを構造体にバインドする
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := ctx.ShouldBindJSON(&user); err != nil {
 		// エラーログを書き込む
 		logging.LogError("Error binding JSON:", err)
 
 		// エラーレスポンスを返す
-		enbox.ResponseJson(c, http.StatusBadRequest, nil)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		return
 	}
 
-		// ログイン処理の流れはサービス層で行う
+	// ログイン処理の流れはサービス層で行う
 	tokenString, err :=UserService.Login(user)
 	if err != nil {
 		// エラーログを書き込む
@@ -48,22 +55,22 @@ func LoginHandler(c *gin.Context) {
 		if errors.As(err, &customErr) {
 			switch customErr.Code() {
 				case custom_error.ResourceNotFoundError:	// メールアドレスが違っていた場合
-					enbox.ResponseJson(c, http.StatusUnauthorized, nil)
+					conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
 					return
 				case custom_error.UnauthorizedError:		// パスワードが一致しなかった場合
-					enbox.ResponseJson(c, http.StatusUnauthorized, nil)
+					conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
 					return
 				default:	// 設定したカスタムエラー処理に抜けがある場合の処理
-					enbox.ResponseJson(c, http.StatusBadRequest, nil)
+					conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 					return
 			}
 		} else {
-			enbox.ResponseJson(c, http.StatusInternalServerError, nil)
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 			return
 		}
 	}
 
 	// 正常に終了した場合のレスポンス
-	enbox.ResponseJson(c, http.StatusOK, tokenString)
+	conversion.ResponseJson(ctx, http.StatusOK, tokenString)
 
 }

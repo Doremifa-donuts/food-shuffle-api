@@ -1,32 +1,38 @@
 package model
 
-type ShareStatus string
+type UserType string
 
 const (
-	Active ShareStatus =  "Active"
-	Silent ShareStatus = "Silent"
-	Disabled      ShareStatus = "Disabled"
+	General UserType = "General"
+	Restaurant UserType = "Restaurant"
 )
 
 type User struct {
-	UserUuid    string       `gorm:"type:char(36);not null;primary_key;"` // ユーザーのUUID
-	Username    string       `gorm:"type:varchar(50);not null" `           // ユーザー名
-	MailAddress string       `gorm:"type:varchar(255);not null"`          // メールアドレス
-	Password    string       `gorm:"type:varchar(255);not null"`          // パスワード
-	Tell        string       `gorm:"type:varchar(20);not null"`           // 電話番号
-	JtiToken    string       `gorm:"type:varchar(255);not null"`          // JTIトークン
-	ShareStatus ShareStatus  `gorm:"type:enum('Active', 'Silent', 'Disabled');default:'Silent';not null"` // 共有ステータス
+	UserUuid    string `gorm:"type:char(36);not null;primary_key;"`	// ユーザーのUUID
+	MailAddress string `gorm:"type:varchar(255);not null"`		// メールアドレス
+	Password    string `gorm:"type:varchar(255);not null"`		// ハッシュ化されたパスワード
+	Tell        string `gorm:"type:varchar(20);not null"`		// 電話番号
+	JtiToken    string `gorm:"type:varchar(255);not null"`		// jtiトークン　JWTの解析に使う
+	UserType 	UserType `gorm:"type:enum('General', 'Restaurant');not null"`	// ユーザーの種類　一般利用者、レストラン利用者
 }
+
 
 // サンプルデータ
 var SampleUsers = []User{
 	{
-		UserUuid:    "0192aa4a-2e3f-7000-a78d-4830ada1b887",
-		Username:    "test_user",
-		MailAddress: "test@test.com",
+		UserUuid:    "a0adb027-0f54-4c1a-9ed3-86041c863344",
+		MailAddress: "general@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq",	// test
 		Tell:        "08012341234",
-		JtiToken:    "test_jti_token",
-		ShareStatus: Active,
+		JtiToken:    "general_jti_token",
+		UserType:    General,
+	},
+	{
+		UserUuid:    "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
+		MailAddress: "resto@test.com",
+		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq",	// test
+		Tell:        "08056785678",
+		JtiToken:    "resto_jti_token",
+		UserType:    Restaurant,
 	},
 }

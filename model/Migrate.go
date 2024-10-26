@@ -9,24 +9,28 @@ import (
 
 func MigrateDB(db *gorm.DB) {
 	// DBのテーブルが存在する場合はマイグレートをスキップする
-	if db.Migrator().HasTable(&User{}) {
-		return
-	}
+	// if db.Migrator().HasTable(&User{}) {
+	// 	return
+	// } else {
+
+
 	// DBのマイグレーションを実行する
-	if err := db.AutoMigrate(&User{}, &RestoUser{}, &Group{}, &GroupSubmission{}, &Review{}, &ReviewFavorite{}, &ReviewArchive{}, &Course{}, &UrgentCampaign{}, &GroupSharedReviews{}, &Reservation{}); err != nil {
+	if err := db.AutoMigrate(&User{}, &RestaurantUser{}, &GeneralUser{}, &Group{}, &GroupSubmission{}, &Review{}, &ReviewFavorite{}, &ReviewArchive{}, &Course{}, &UrgentCampaign{}, &GroupSharedReviews{}, &Reservation{}); err != nil {
 		logging.LogError("Error migrating database", err)
 		return
 	} else {
 		fmt.Println("Migrated database")
 	}
-
-	// サンプルデータを挿入する
+		// サンプルデータを挿入する
 	insertSampleData(db)
+	// }
+
+
 }
 
 func insertSampleData(db *gorm.DB) {
 
 	// サンプルデータを挿入する
 	db.Create(SampleUsers)
-	fmt.Println("Users inserted")
+	fmt.Println("Inserted sample data")
 }

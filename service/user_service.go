@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	bcrypt "food-shuffle-api/crypto"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
@@ -19,7 +18,7 @@ func (userService *UserService) Login(user model.User) (string, error) {
 	// dbから取得したパスワードと比較するために、パスワードを保持しておく
 	inputPassword := user.Password
 
-	// メールアドレスを元にユーザーの存在するかを確認する
+	// メールアドレスを元にユーザーが存在するかを確認する
 	user, err := repository.GetUserByMailAddress(db, user.MailAddress)
 	if err != nil {
 		return "", custom_error.NewError(custom_error.ResourceNotFoundError)
@@ -28,7 +27,6 @@ func (userService *UserService) Login(user model.User) (string, error) {
 	// パスワードが一致するか確認する
 	err = bcrypt.CheckPasswordHash(user.Password, inputPassword)
 	if err != nil {
-		fmt.Println("ここは来るんでー")
 		return "", custom_error.NewError(custom_error.UnauthorizedError)
 	}
 
