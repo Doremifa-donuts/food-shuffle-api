@@ -1,8 +1,6 @@
-package bcrypt
+package bcrypto
 
 import (
-	"fmt"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,6 +13,5 @@ func GetHashPassword(password string) (string, error) {
 // ハッシュ化されたパスワードを比較する
 func CheckPasswordHash(hash string, password string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	fmt.Println(err)
 	return err
 }

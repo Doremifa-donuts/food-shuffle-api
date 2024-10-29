@@ -6,6 +6,10 @@ import (
 	"food-shuffle-api/model"
 )
 
+// ユーザーを作成する
+func CreateUser(db *gorm.DB, user model.User) error {
+	return db.Create(&user).Error
+}
 // UserUUIDが一致するユーザーのJtiTokenを更新する
 func SaveJtiByUserUuid(db *gorm.DB, userUuid string, jtiToken string) error {
 	return db.Model(&model.User{}).Where("user_uuid = ?", userUuid).Update("jti_token", jtiToken).Error
@@ -34,7 +38,7 @@ func GetUserByMailAddress(db *gorm.DB, mailAddress string) (model.User, error) {
 }
 
 // ユーザーUUIDが一致するユーザーのアカウントタイプを取得する
-func IsUserType(uuid string, userType model.UserType) error {
+func IsUserType(db *gorm.DB, uuid string, userType model.UserType) error {
 	var user model.User
 	err := db.Where("user_uuid = ? AND user_type = ?", uuid, userType).First(&user).Error
 	if err != nil {

@@ -23,24 +23,26 @@ type CustomError struct {
 
 // カスタムエラーの一覧を定義
 const ( // カスタムエラーの名前を追加していく
-	UncategorizedError Code = iota // 未分類のエラー
-	UnauthorizedError              // 認証を失敗したエラー
-	ResourceNotFoundError          // 対応するリソースが見つからなかったエラー
-	TokenExpiredError              // 有効期限切れのエラー
-	AssertionFailedError           // アサーションに失敗したエラー
-	InvalidDataError               // 求められた形式でないデータを受け取ったエラー
-	ForbiddenError                 // アクセス権限を持っていない
+	UncategorizedError    Code = iota // 未分類のエラー
+	UnauthorizedError                 // 認証を失敗したエラー
+	ResourceNotFoundError             // 対応するリソースが見つからなかったエラー
+	TokenExpiredError                 // 有効期限切れのエラー
+	AssertionFailedError              // アサーションに失敗したエラー
+	InvalidDataError                  // 求められた形式でないデータを受け取ったエラー
+	ForbiddenError                    // アクセス権限を持っていない
+	ConflictError                     // 重複エラー
 )
 
 // 各エラーに対応するエラーメッセージを定義
 var errorMessages = map[Code]string{
-	UncategorizedError: "An unexpected error has occurred",
-	UnauthorizedError:  "failed to authorize",
+	UncategorizedError:    "An unexpected error has occurred",
+	UnauthorizedError:     "failed to authorize",
 	ResourceNotFoundError: "resource not found",
 	TokenExpiredError:     "token expired",
-	AssertionFailedError:          "assertion failed",
-	InvalidDataError:              "invalid data",
-	ForbiddenError:                "forbidden",
+	AssertionFailedError:  "assertion failed",
+	InvalidDataError:      "invalid data",
+	ForbiddenError:        "forbidden",
+	ConflictError:         "resource conflict",
 }
 
 // カスタムエラーを作成する関数

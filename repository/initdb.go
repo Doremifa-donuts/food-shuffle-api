@@ -15,6 +15,7 @@ import (
 
 var db *gorm.DB
 
+// DBを初期化する
 func InitDB() {
 	// コンテナに設定されている環境変数を読み込む
 	mysqlHost := os.Getenv("MYSQL_HOST")
@@ -54,7 +55,12 @@ func InitDB() {
 
 }
 
+// DBを取得する
 func GetDB() *gorm.DB {
-
 	return db
+}
+
+// トランザクションを実行する関数
+func Transaction(fn func(tx *gorm.DB) error) error {
+	return db.Transaction(fn)
 }

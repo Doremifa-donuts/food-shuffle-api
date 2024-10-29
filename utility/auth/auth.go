@@ -16,7 +16,7 @@ import (
 )
 
 // ログイン時にjwtトークンを発行する関数　生成したトークンは返し、トークンの検証に必要なjtiはデータベースに格納する
-func GenerateToken(user *model.User) (string, error) {
+func GenerateToken(tx *gorm.DB, user *model.User) (string, error) {
 	// トークンの一意性を確保するために、ランダムなUUIDを生成 時間でソートする必要はないためUUIDv4を採用
 	jtiToken, err := uuid.NewRandom()
 	if err != nil {
@@ -28,7 +28,7 @@ func GenerateToken(user *model.User) (string, error) {
 	jtiTokenString := jtiToken.String()
 
 	// 対象ユーザーのjtiトークンを更新する
-	if err := repository.SaveJtiByUserUuid(repository.GetDB(), user.UserUuid, jtiTokenString); err != nil {
+	if err := repository.SaveJtiByUserUuid(tx, user.UserUuid, jtiTokenString); err != nil {
 		logging.LogError("failed to save jti", err)
 		return "", err
 	}
@@ -72,7 +72,7 @@ func ValidateToken(tokenString string) (string, error) {
 	})
 	if err != nil {
 		logging.LogError("failed to parse token", err)
-		return "", err
+		return "", custom_error.NewError(custom_error.UnauthorizedError)
 	}
 
 	// トークンをアサーション

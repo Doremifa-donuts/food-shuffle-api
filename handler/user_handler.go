@@ -71,6 +71,6 @@ func LoginHandler(ctx *gin.Context) {
 	}
 
 	// 正常に終了した場合のレスポンス
-	conversion.ResponseJson(ctx, http.StatusOK, tokenString)
+	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"Token": tokenString})	// レスポンスにトークンを返す(tokenString)
 
 }

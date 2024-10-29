@@ -2,7 +2,6 @@ package logging
 
 import (
 	"fmt"
-	"food-shuffle-api/utility/custom_error"
 	"os"
 
 	"go.uber.org/zap"
@@ -32,5 +31,5 @@ func InitLogging() {
 
 // エラーログを簡潔に記録するヘルパー関数
 func LogError(message string, err error) {
-	errorLog.Error(message, zap.Error(custom_error.NewError(custom_error.UncategorizedError)))
+	errorLog.Error(message, zap.Error(err))
 }

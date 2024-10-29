@@ -15,6 +15,8 @@ func routing(router *gin.Engine) *gin.Engine {
 	{
 		v1.POST("/login", handler.LoginHandler)	// v1/login
 
+		v1.POST("/users/register", handler.GeneralUserRegisterHandler)	// v1/users/register
+
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
@@ -35,11 +37,16 @@ func routing(router *gin.Engine) *gin.Engine {
 					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
 				})
 
+
+				// 一般ユーザーのアカウント作成
+				// generals.POST("/register", handler.GeneralUserRegisterHandler)	// v1/auth/users/register
+
 				// 一般ユーザー用のエンドポイントはこの中に追加していく
+
 			}
 
 			// レストランユーザー用のエンドポイント
-			restaurants :=auth.Group("/restorants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
+			restaurants :=auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
 				// レストランユーザーの認証をテストするエンドポイント
 				restaurants.GET("/test", func(ctx *gin.Context) {

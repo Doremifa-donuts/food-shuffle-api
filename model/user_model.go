@@ -8,7 +8,7 @@ const (
 )
 
 type User struct {
-	UserUuid    string `gorm:"type:char(36);not null;primary_key;"`	// ユーザーのUUID
+	UserUuid    string `gorm:"type:char(36);primary_key;"`	// ユーザーのUUID
 	MailAddress string `gorm:"type:varchar(255);not null"`		// メールアドレス
 	Password    string `gorm:"type:varchar(255);not null"`		// ハッシュ化されたパスワード
 	Tell        string `gorm:"type:varchar(20);not null"`		// 電話番号
