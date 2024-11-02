@@ -6,6 +6,7 @@ import (
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -26,13 +27,13 @@ func (userService *UserService) Login(user model.User) (string, error) {
 		// メールアドレスを元にユーザーが存在するかを確認する
 		user, err := repository.GetUserByMailAddress(tx, user.MailAddress)
 		if err != nil {
-			return custom_error.NewError(custom_error.ResourceNotFoundError)
+			return custom_error.NewError(http.StatusNotFound, "User not found")
 		}
 
 		// パスワードが一致するか確認する
 		err = bcrypto.CheckPasswordHash(user.Password, inputPassword)
 		if err != nil {
-			return custom_error.NewError(custom_error.UnauthorizedError)
+			return custom_error.NewError(http.StatusUnauthorized, "Invalid password")
 		}
 
 		// メールアドレスとパスワードが一致した場合、jwtトークンを発行する
