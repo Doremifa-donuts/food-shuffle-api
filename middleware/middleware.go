@@ -28,7 +28,7 @@ func Auth() gin.HandlerFunc {
 		// トークンが設定されていなければエラーを返す
 		if tokenString == "" {
 			// エラーログを書き込む
-			logging.LogError("Authorization header not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+			logging.LogError("Authorization header not found", nil)
 
 			// エラーレスポンスを返す
 			conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
@@ -51,24 +51,8 @@ func Auth() gin.HandlerFunc {
 			// カスタムエラーにキャスト可能か確認する
 			// キャスト可能な場合、自身で定義したビジネスロジック上のエラーなので、適切なレスポンスを返す
 			if errors.As(err, &customErr) {
-				// switch customErr.Code() {
-				// case custom_error.UnauthorizedError:	// 認証に失敗した場合
-				// 	logging.LogError("Unauthorized", err)
-
-				// case custom_error.ResourceNotFoundError:	// トークンの取得に失敗した場合
-				// 	logging.LogError("Token not found", err)
-
-				// case custom_error.AssertionFailedError:	// トークンのレコードのアサーションに失敗した場合
-				// 	logging.LogError("Assertion failed", err)
-
-				// case custom_error.TokenExpiredError:	// トークン有効期限が切れていた場合
-				// 	logging.LogError("Token expired", err)
-
-				// default:
-				// 	logging.LogError("Unknown error", err) // エラー分岐の分類漏れ対策
-				// }
 				// エラー文は発生した時点でログに書き込んだことが良い気がするのでレスポンス分けたいエラー以外はそこまで詳しく分類しなくていいかもしれない
-				conversion.ResponseJson(ctx, http.StatusUnauthorized, nil)
+				conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 				ctx.Abort()
 				return
 			}
@@ -103,13 +87,13 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 	// idが存在しなければエラーを返す
 	if uuid == "" {
 		// エラーログを書き込む
-		logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+		logging.LogError("uuid not found", nil)
 
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		// 処理を終了する
 		ctx.Abort()
-		}
+	}
 
 	// ユーザーのアカウントタイプをチェック
 	err := repository.IsUserType(repository.GetDB(), uuid, userType)
@@ -143,12 +127,12 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 }
 
 // ユーザータイプが一般ユーザーであることを確認する
-func AllowGeneralUsers() gin.HandlerFunc{
+func AllowGeneralUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		//
 		uuid, ok := ctx.Get("uuid")
 		if !ok {
-			logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+			logging.LogError("uuid not found", nil)
 			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 			ctx.Abort()
 			return
@@ -158,12 +142,12 @@ func AllowGeneralUsers() gin.HandlerFunc{
 }
 
 // ユーザータイプがレストランユーザーであることを確認する
-func AllowRestaurantUsers() gin.HandlerFunc{
+func AllowRestaurantUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		//
 		uuid, ok := ctx.Get("uuid")
 		if !ok {
-			logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+			logging.LogError("uuid not found", nil)
 			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 			ctx.Abort()
 			return

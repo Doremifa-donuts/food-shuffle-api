@@ -16,7 +16,7 @@ import (
 var db *gorm.DB
 
 // DBを初期化する
-func InitDB() {
+func InitDB() error {
 	// コンテナに設定されている環境変数を読み込む
 	mysqlHost := os.Getenv("MYSQL_HOST")
 	mysqlPort := os.Getenv("MYSQL_PORT")
@@ -31,6 +31,7 @@ func InitDB() {
 	gormLogFile, err := os.OpenFile("log/gorm.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		logging.LogError("Error opening gorm.log", err)
+		return err
 	}
 
 	// GORMのロガーを設定（全てのSQLクエリを出力）
@@ -45,14 +46,15 @@ func InitDB() {
 	)
 
 	// DBに接続する
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{ Logger: newLogger })
+	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{Logger: newLogger})
 	if err != nil { // DBに接続できなかった場合
 		logging.LogError("Error connecting to database", err)
+		return err
 	} else { // DBに接続できた場合
 		fmt.Println("Connected to database")
 	}
 
-
+	return nil
 }
 
 // DBを取得する

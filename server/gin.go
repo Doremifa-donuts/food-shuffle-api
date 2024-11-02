@@ -10,7 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitGin() *gin.Engine {
+func InitGin() (*gin.Engine, error) {
+
+	// 画像を格納するディレクトリを作成する
+	if err := os.MkdirAll("public/images", 0755); err != nil {
+		logging.LogError("Error creating images directory", err)
+		return nil, err
+	}
+
 	// ginのインスタンスを作成
 	router := gin.New()
 
@@ -19,8 +26,8 @@ func InitGin() *gin.Engine {
 	if err != nil { // アクセスログを開けなかった場合
 		// エラーをログに書き込む
 		logging.LogError("Error opening access.log", err)
+		return nil, err
 	}
-	// defer AccessLogFile.Close()
 
 	router.Use(gin.Recovery(), gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/metrics"},
@@ -44,5 +51,5 @@ func InitGin() *gin.Engine {
 
 	// APIサーバのルーティングを読み込む
 	routing(router)
-	return router
+	return router, nil
 }
