@@ -13,15 +13,19 @@ func routing(router *gin.Engine) *gin.Engine {
 	// エンドポイントのURLは「/」区切りでグループに所属する
 	v1 := router.Group("/v1") // http://IPADDRESS:5678/v1/
 	{
-		v1.POST("/login", handler.LoginHandler)	// v1/login
 
-		v1.POST("/users/register", handler.GeneralUserRegisterHandler)	// v1/users/register
+		v1.POST("/login", handler.LoginHandler) // v1/login
+
+		v1.POST("/users/register", handler.GeneralUserRegisterHandler) // v1/users/register
 
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
+			// 保存した画像へのアクセスを許可
+			auth.Static("/images", "public/images") // v1/auth/images
+
 			// テスト用のエンドポイント
-			v1.GET("/test", func(ctx *gin.Context) {			// v1/auth/test
+			auth.GET("/test", func(ctx *gin.Context) { // v1/auth/test
 				fmt.Println("test")
 				fmt.Println(ctx.Get("uuid"))
 				ctx.JSON(http.StatusOK, gin.H{"message": "test"})
@@ -31,22 +35,24 @@ func routing(router *gin.Engine) *gin.Engine {
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{
 				// 一般ユーザーの認証をテストするエンドポイント
-				generals.GET("/test", func(ctx *gin.Context) {		// v1/auth/users/test
+				generals.GET("/test", func(ctx *gin.Context) { // v1/auth/users/test
 					fmt.Println("test")
 					fmt.Println(ctx.Get("uuid"))
 					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
 				})
 
-
-				// 一般ユーザーのアカウント作成
-				// generals.POST("/register", handler.GeneralUserRegisterHandler)	// v1/auth/users/register
+				// レビュー関連
+				reviews := generals.Group("/reviews") // v1/auth/users/reviews
+				{
+					reviews.POST("/post", handler.ReviewPostHandler) // v1/auth/users/reviews/post
+				}
 
 				// 一般ユーザー用のエンドポイントはこの中に追加していく
 
 			}
 
 			// レストランユーザー用のエンドポイント
-			restaurants :=auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
+			restaurants := auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
 				// レストランユーザーの認証をテストするエンドポイント
 				restaurants.GET("/test", func(ctx *gin.Context) {
@@ -59,14 +65,13 @@ func routing(router *gin.Engine) *gin.Engine {
 			}
 		}
 
-
 	}
 	return router
 }
 
 // 接続確認用の静的サイトを表示する
 func checkConnectionRoute(router *gin.Engine) {
-	router.LoadHTMLGlob("view/*")
+	router.LoadHTMLGlob("public/view/*")
 
 	router.GET("/", func(ctx *gin.Context) {
 		httpStatus := http.StatusOK
