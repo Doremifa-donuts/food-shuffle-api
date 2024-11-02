@@ -8,14 +8,14 @@ const (
 )
 
 type User struct {
-	UserUuid    string   `gorm:"type:char(36);primary_key;"`                  // ユーザーのUUID
-	MailAddress string   `gorm:"type:varchar(255);not null"`                  // メールアドレス
-	Password    string   `gorm:"type:varchar(255);not null"`                  // ハッシュ化されたパスワード
-	Tell        string   `gorm:"type:varchar(20);not null"`                   // 電話番号
-	JtiToken    string   `gorm:"type:varchar(255);not null"`                  // jtiトークン　JWTの解析に使う
-	UserType    UserType `gorm:"type:enum('General', 'Restaurant');not null"` // ユーザーの種類　一般利用者、レストラン利用者
-	User *GeneralUser `gorm:"foreignKey:UserUuid"`
-	Restaurant *RestaurantUser `gorm:"foreignKey:RestaurantUuid;references:UserUuid"`
+	UserUuid    string          `gorm:"type:char(36);primary_key;"`                  // ユーザーのUUID
+	MailAddress string          `gorm:"type:varchar(255);not null"`                  // メールアドレス
+	Password    string          `gorm:"type:varchar(255);not null"`                  // ハッシュ化されたパスワード
+	Tell        string          `gorm:"type:varchar(20);not null"`                   // 電話番号
+	JtiToken    string          `gorm:"type:char(36);not null"`                      // jtiトークン　JWTの解析に使う
+	UserType    UserType        `gorm:"type:enum('General', 'Restaurant');not null"` // ユーザーの種類　一般利用者、レストラン利用者
+	User        *GeneralUser    `gorm:"foreignKey:UserUuid"`
+	Restaurant  *RestaurantUser `gorm:"foreignKey:RestaurantUuid;references:UserUuid"`
 }
 
 // サンプルデータ

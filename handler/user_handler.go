@@ -6,8 +6,8 @@ import (
 
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
-	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/conversion"
+	"food-shuffle-api/utility/custom_error"
 
 	"github.com/gin-gonic/gin"
 
@@ -42,7 +42,7 @@ func LoginHandler(ctx *gin.Context) {
 	}
 
 	// ログイン処理の流れはサービス層で行う
-	tokenString, err :=UserService.Login(user)
+	tokenString, err := UserService.Login(user)
 	if err != nil {
 		// エラーログを書き込む
 		logging.LogError("Error logging in:", err)
@@ -54,13 +54,13 @@ func LoginHandler(ctx *gin.Context) {
 		if errors.As(err, &customErr) {
 			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 			return
-		} else {	// TODO: カスタムエラー以外のエラーを分類する
+		} else { // TODO: カスタムエラー以外のエラーを分類する
 			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 			return
 		}
 	}
 
 	// 正常に終了した場合のレスポンス
-	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"Token": tokenString})	// レスポンスにトークンを返す(tokenString)
+	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"Token": tokenString}) // レスポンスにトークンを返す(tokenString)
 
 }

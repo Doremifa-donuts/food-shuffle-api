@@ -11,7 +11,6 @@ import (
 	Serviceで定義されたエラーを発生させ、Controllerでエラーハンドリングを行う
 */
 
-
 // カスタムエラー構造体
 type CustomError struct {
 	statusCode int

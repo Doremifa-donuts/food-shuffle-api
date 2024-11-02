@@ -10,6 +10,7 @@ import (
 func CreateUser(db *gorm.DB, user model.User) error {
 	return db.Create(&user).Error
 }
+
 // UserUUIDが一致するユーザーのJtiTokenを更新する
 func SaveJtiByUserUuid(db *gorm.DB, userUuid string, jtiToken string) error {
 	return db.Model(&model.User{}).Where("user_uuid = ?", userUuid).Update("jti_token", jtiToken).Error
@@ -23,7 +24,7 @@ func CheckJtiUser(db *gorm.DB, userUuid string, jtiToken string) error {
 	if err != nil {
 		return err
 	}
-	return  nil
+	return nil
 }
 
 // メールアドレスが一致するユーザーを取得する
