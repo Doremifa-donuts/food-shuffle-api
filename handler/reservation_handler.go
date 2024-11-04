@@ -6,7 +6,6 @@ import (
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
-	"food-shuffle-api/utility/custom_error"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +17,7 @@ var ReservationService = service.ReservationService{}
 func GetReservationsHandler(ctx *gin.Context) {
 	uuid, ok := ctx.Get("uuid")
 	if !ok {
-		logging.LogError("uuid not found", custom_error.NewError(custom_error.ResourceNotFoundError))
+		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		ctx.Abort()
@@ -31,7 +30,7 @@ func GetReservationsHandler(ctx *gin.Context) {
 	if err != nil {
 		logging.LogError("get reservation failed", err)
 		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		ctx.Abort()
 		return
 	}

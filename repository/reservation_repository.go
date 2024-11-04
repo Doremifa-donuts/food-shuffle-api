@@ -10,7 +10,7 @@ func GetReservationsByRestaurantUuid(db *gorm.DB, uuid string) ([]model.Reservat
 	// RestoUuidに一致する予約を取得する
 	var reservations []model.Reservation
 
-	err := db.Where("resto_uuid = ?", uuid).Find(&reservations).Error
+	err := db.Where("restaurant_uuid = ?", uuid).Find(&reservations).Error
 	if err != nil {
 		return nil, err
 	}
