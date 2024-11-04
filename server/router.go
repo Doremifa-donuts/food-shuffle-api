@@ -13,15 +13,15 @@ func routing(router *gin.Engine) *gin.Engine {
 	// エンドポイントのURLは「/」区切りでグループに所属する
 	v1 := router.Group("/v1") // http://IPADDRESS:5678/v1/
 	{
-		v1.POST("/login", handler.LoginHandler)	// v1/login
+		v1.POST("/login", handler.LoginHandler) // v1/login
 
-		v1.POST("/users/register", handler.GeneralUserRegisterHandler)	// v1/users/register
+		v1.POST("/users/register", handler.GeneralUserRegisterHandler) // v1/users/register
 
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
 			// テスト用のエンドポイント
-			v1.GET("/test", func(ctx *gin.Context) {			// v1/auth/test
+			v1.GET("/test", func(ctx *gin.Context) { // v1/auth/test
 				fmt.Println("test")
 				fmt.Println(ctx.Get("uuid"))
 				ctx.JSON(http.StatusOK, gin.H{"message": "test"})
@@ -31,12 +31,11 @@ func routing(router *gin.Engine) *gin.Engine {
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{
 				// 一般ユーザーの認証をテストするエンドポイント
-				generals.GET("/test", func(ctx *gin.Context) {		// v1/auth/users/test
+				generals.GET("/test", func(ctx *gin.Context) { // v1/auth/users/test
 					fmt.Println("test")
 					fmt.Println(ctx.Get("uuid"))
 					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
 				})
-
 
 				// 一般ユーザーのアカウント作成
 				// generals.POST("/register", handler.GeneralUserRegisterHandler)	// v1/auth/users/register
@@ -46,7 +45,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			}
 
 			// レストランユーザー用のエンドポイント
-			restaurants :=auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
+			restaurants := auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
 				// レストランユーザーの認証をテストするエンドポイント
 				restaurants.GET("/test", func(ctx *gin.Context) {
@@ -56,9 +55,13 @@ func routing(router *gin.Engine) *gin.Engine {
 				})
 
 				// レストラン用のエンドポイントはこの中に追加していく
+				reservations := restaurants.Group("/reservations")
+				{
+					// 予約の一覧を取得する
+					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
+				}
 			}
 		}
-
 
 	}
 	return router
