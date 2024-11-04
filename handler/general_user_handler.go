@@ -22,7 +22,7 @@ var GeneralUserService = service.GeneralUserService{}
 func GeneralUserRegisterHandler(ctx *gin.Context) {
 	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
 	if ctx.GetHeader("Content-Type") != "application/json" {
-		logging.LogError("Content-Type is not application/json", custom_error.NewError(custom_error.InvalidDataError))
+		logging.LogError("Content-Type is not application/json", nil)
 
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
@@ -57,18 +57,13 @@ func GeneralUserRegisterHandler(ctx *gin.Context) {
 		// エラーハンドリング
 		var customErr *custom_error.CustomError
 		if errors.As(err, &customErr) { // カスタムエラーの場合
-			switch customErr.Code() {
-			case custom_error.ConflictError: //メールアドレスが登録済みの場合
-				conversion.ResponseJson(ctx, http.StatusConflict, nil)
-				return
-			default: // エラーハンドル漏れ対策
-				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-				return
-			}
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		} else { // TODO: カスタムエラー以外の場合のハンドリングを行う
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			return
 		}
-		// その他のエラーの場合
-		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-		return
+
 	}
 
 	// 成功レスポンス

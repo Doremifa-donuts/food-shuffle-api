@@ -10,16 +10,17 @@ import (
 
 var errorLog *zap.Logger
 
-func InitLogging() {
+func InitLogging() error {
 	// エラーログを初期化する
 	errorLogFile, err := os.OpenFile("log/error.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil { // エラーログを開けなかった場合
 		fmt.Println("Error opening error.log", err)
+		return err
 	}
 
 	errorLog, err = zap.NewProduction()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	errorLog = zap.New(zapcore.NewCore(
@@ -27,9 +28,12 @@ func InitLogging() {
 		zapcore.Lock(errorLogFile),
 		zap.ErrorLevel, // ログのレベルをエラーに設定
 	))
+
+	return nil
 }
 
 // エラーログを簡潔に記録するヘルパー関数
 func LogError(message string, err error) {
+	fmt.Println(message, err)
 	errorLog.Error(message, zap.Error(err))
 }

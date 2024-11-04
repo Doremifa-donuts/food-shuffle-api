@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 	"time"
 
@@ -57,36 +58,40 @@ func ValidateToken(tokenString string) (string, error) {
 	if len(tokenString) > 7 && strings.HasPrefix(tokenString, "Bearer ") {
 		// プレフィックスを外してトークンを取得
 		tokenString = tokenString[7:]
-	} else {	// Bearerプレフィックスがなければエラーを返す
+	} else { // Bearerプレフィックスがなければエラーを返す
+		err := custom_error.NewError(http.StatusBadRequest, "Token format is invalid")
 		logging.LogError("token doesn't have bearer prefix", nil)
-		return "", custom_error.NewError(custom_error.ResourceNotFoundError)
+		return "", err
 	}
 
 	// 受信したトークンを検証する
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			logging.LogError("unexpected signing method", nil)
-			return nil, custom_error.NewError(custom_error.UnauthorizedError)
+			err := custom_error.NewError(http.StatusUnauthorized, "unexpected signing method")
+			logging.LogError("unexpected signing method", err)
+			return nil, err
 		}
 		return []byte(SecretKey), nil
 	})
 	if err != nil {
 		logging.LogError("failed to parse token", err)
-		return "", custom_error.NewError(custom_error.UnauthorizedError)
+		return "", err
 	}
 
 	// トークンをアサーション
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		logging.LogError("invalid token", nil)
-		return "", custom_error.NewError(custom_error.AssertionFailedError)
+		err := custom_error.NewError(http.StatusUnauthorized, "Token cannot be verified")
+		logging.LogError("token cannot be verified", err)
+		return "", err
 	}
 
 	// トークンからjtiを取得
 	jti, ok := claims["jti"].(string)
 	if !ok {
-		logging.LogError("jti not found in token", nil)
-		return "", custom_error.NewError(custom_error.UnauthorizedError)
+		err := custom_error.NewError(http.StatusUnauthorized, "jti not found in token")
+		logging.LogError("jti not found in token", err)
+		return "", err
 	} else {
 
 		// jtiを検証
@@ -96,9 +101,10 @@ func ValidateToken(tokenString string) (string, error) {
 		// トークンから得られたuuidとjtiの組み合わせを検証
 		err := repository.CheckJtiUser(repository.GetDB(), uuid, jti)
 		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {	// 一致したレコードが存在しなかった場合
-				logging.LogError("pair of uuid and jti not found", nil)
-				return "", custom_error.NewError(custom_error.UnauthorizedError)
+			if errors.Is(err, gorm.ErrRecordNotFound) { // 一致したレコードが存在しなかった場合
+				err := custom_error.NewError(http.StatusUnauthorized, "pair of jti and uuid not found")
+				logging.LogError("pair of jti and uuid not found", err)
+				return "", err
 			}
 			return "", err
 		}
@@ -106,16 +112,18 @@ func ValidateToken(tokenString string) (string, error) {
 		// クレームからexpを取得
 		exp, ok := claims["exp"].(float64)
 		if !ok {
-			logging.LogError("exp not found in token", nil)
-			return "", custom_error.NewError(custom_error.AssertionFailedError)
+			err := custom_error.NewError(http.StatusUnauthorized, "exp not found in token")
+			logging.LogError("exp not found in token", err)
+			return "", err
 		}
 		// Unixtimeを日時に変換
 		expTime := time.Unix(int64(exp), 0)
 
 		// トークンが有効期限内かを検証
 		if time.Now().After(expTime) {
-			logging.LogError("token expired", nil)
-			return "",  custom_error.NewError(custom_error.TokenExpiredError)
+			err := custom_error.NewError(http.StatusUnauthorized, "token expired")
+			logging.LogError("token expired", err)
+			return "", err
 		}
 
 		// チェックを通過したユーザーのUUIDを返す

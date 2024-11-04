@@ -8,6 +8,7 @@ import (
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+	"net/http"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -32,7 +33,7 @@ func (service *GeneralUserService) Register(user model.User, generalUser model.G
 		}
 		if err == nil { // メールアドレスが一致するユーザーが存在する場合
 			logging.LogError("users mail address already exists", err)
-			return custom_error.NewError(custom_error.ConflictError)
+			return custom_error.NewError(http.StatusConflict, "User already exists")
 		}
 
 		// UUIDを生成する

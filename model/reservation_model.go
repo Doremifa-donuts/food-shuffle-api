@@ -4,12 +4,12 @@ import "time"
 
 type Reservation struct {
 	ReservationUuid   string    `gorm:"type:char(36);primary_key"`
-	RestoUuid         string    `gorm:"type:char(36);foreignkey:RestoUuid"`
-	UserUuid          string    `gorm:"type:char(36);foreignkey:UserUuid"`
+	RestaurantUuid    string    `gorm:"type:char(36);foreignKey:RestaurantUuid"`
+	UserUuid          string    `gorm:"type:char(36);foreignKey:UserUuid"`
 	ReservationDate   time.Time `gorm:"type:date;not null"`
 	NumberOfPeople    int       `gorm:"type:integer;not null"`
-	CourseNo          *int      `gorm:"type:integer;foreignkey:CourseNo;;"`
-	UrgentCampaignNo  *int      `gorm:"type:integer;foreignkey:UrgentCampaignNo;"`
+	CourseUuid        *string   `gorm:"type:char(36)"`
+	CampaignUuid      *string   `gorm:"type:char(36)"`
 	ReservationStatus bool      `gorm:"type:bool;not null"`
 }
 
