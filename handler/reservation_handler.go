@@ -36,7 +36,11 @@ func ReservationRegistorHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Get("uuid")
+	// ミドルウェアが解析したuuidを構造体に格納
+	uuid, _ := ctx.Get("uuid")
+	reservation.UserUuid = uuid.(string)
+
+
 
 	//reservation_register_serviseへ処理を投げる
 	result, err := ReservationService.ResevationRegister(reservation)
