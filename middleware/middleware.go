@@ -109,7 +109,7 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		// 処理を終了する
 		ctx.Abort()
-		}
+	}
 
 	// ユーザーのアカウントタイプをチェック
 	err := repository.IsUserType(repository.GetDB(), uuid, userType)
@@ -143,7 +143,7 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 }
 
 // ユーザータイプが一般ユーザーであることを確認する
-func AllowGeneralUsers() gin.HandlerFunc{
+func AllowGeneralUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		//
 		uuid, ok := ctx.Get("uuid")
@@ -158,7 +158,7 @@ func AllowGeneralUsers() gin.HandlerFunc{
 }
 
 // ユーザータイプがレストランユーザーであることを確認する
-func AllowRestaurantUsers() gin.HandlerFunc{
+func AllowRestaurantUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		//
 		uuid, ok := ctx.Get("uuid")

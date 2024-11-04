@@ -43,6 +43,7 @@ func routing(router *gin.Engine) *gin.Engine {
 
 				// 一般ユーザー用のエンドポイントはこの中に追加していく
 
+				generals.POST("/reservation", handler.ReservationRegistorHandler)	// v1/auth/users/reservation
 			}
 
 			// レストランユーザー用のエンドポイント
