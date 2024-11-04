@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/utility/custom_error"
 	"os"
 	"strconv"
 )
@@ -15,20 +15,24 @@ var (
 )
 
 // jwtトークンに使用するパラメータを
-func InitAuth() {
+func InitAuth() error {
 	// 環境変数からJWTシークレットキーを取得
 	secretKey := os.Getenv("JWT_SECRET_KEY")
 	if secretKey == "" {
-		logging.LogError("JWT_SECRET_KEY is not set", custom_error.NewError(custom_error.UncategorizedError))
+		logging.LogError("JWT_SECRET_KEY is not set", nil)
+		return errors.New("JWT_SECRET_KEY is not set")
 	}
 	// トークンの有効期限を取得
 	expiration, err := strconv.Atoi(os.Getenv("JWT_TOKEN_LIFETIME"))
 	fmt.Println("トークンの有効期限:", expiration)
 	if err != nil || expiration == 0 {
-		logging.LogError("JWT_TOKEN_LIFETIME is not set", custom_error.NewError(custom_error.UncategorizedError))
+		logging.LogError("JWT_TOKEN_LIFETIME is not set", nil)
+		return errors.New("JWT_TOKEN_LIFETIME is not set")
 	}
 
 	// JWTトークンに使用するパラメータを定義
 	SecretKey = secretKey
 	Expire = expiration
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
@@ -11,22 +12,38 @@ import (
 
 func main() {
 	// ログを初期化する
-	logging.InitLogging()
+	err := logging.InitLogging()
+	if err != nil {
+		fmt.Println("Error initializing logging", err)
+	}
 
 	// DBを初期化する
-	repository.InitDB()
+	err = repository.InitDB()
+	if err != nil {
+		fmt.Println("Error initializing database", err)
+	}
 
 	// モデルを初期化する
-	model.MigrateDB(repository.GetDB())
+	err = model.MigrateDB(repository.GetDB())
+	if err != nil {
+		fmt.Println("Error migrating database", err)
+	}
 
 	// 認証関連のモデルを初期化する
-	auth.InitAuth()
+	err = auth.InitAuth()
+	if err != nil {
+		fmt.Println("Error initializing authentication", err)
+	}
 
 	// ginを初期化する
-	router := server.InitGin()
+	router, err := server.InitGin()
+	if err != nil {
+		fmt.Println("Error initializing gin", err)
+	} else {
+		// ポートを環境変数から取得する
+		goPort := os.Getenv("GO_PORT")
 
-	goPort := os.Getenv("GO_PORT")
-
-	// サーバーを起動する
-	router.Run(":" + goPort)
+		// サーバーを起動する
+		router.Run(":" + goPort)
+	}
 }
