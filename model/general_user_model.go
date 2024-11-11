@@ -20,6 +20,7 @@ type GeneralUser struct {
 	Reservations    []Reservation          `gorm:"foreignKey:UserUuid"`
 	PopupGroups     []PopupGroupSubmission `gorm:"foreignKey:UserUuid"`
 	// User            User              `gorm:"foreignKey:UserUuid"`
+	User 			[]User 				   `gorm:"foreignKey:UserUuid;"`
 }
 
 // サンプルデータ
