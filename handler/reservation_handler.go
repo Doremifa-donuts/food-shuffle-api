@@ -12,7 +12,6 @@ import (
 	"food-shuffle-api/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-sql-driver/mysql"
 )
 
 var ReservationService = service.ReservationService{}
@@ -52,14 +51,7 @@ func ReservationRegistorHandler(ctx *gin.Context) {
 			return
 		}
 
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &customErr) {
-			switch mysqlErr.Number {
-			case 1452:
-				conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-				return
-			}
-		}
+		// エラーが発生しなかった時のレスポンス
 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		return
 	}
