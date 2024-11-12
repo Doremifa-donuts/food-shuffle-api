@@ -40,8 +40,6 @@ func ReservationRegistorHandler(ctx *gin.Context) {
 	uuid, _ := ctx.Get("uuid")
 	reservation.UserUuid = uuid.(string)
 
-
-
 	//reservation_register_serviseへ処理を投げる
 	result, err := ReservationService.ResevationRegister(reservation)
 	if err != nil {
@@ -68,4 +66,30 @@ func ReservationRegistorHandler(ctx *gin.Context) {
 
 	//成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"ReservationUuid": result})
+}
+
+// 予約一覧を取得するハンドラー
+func GetReservationsHandler(ctx *gin.Context) {
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		logging.LogError("uuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+
+	// 予約一覧を取得する
+	reviews, err := ReservationService.GetReservationsByRestaurant(uuid.(string))
+
+	if err != nil {
+		logging.LogError("get reservation failed", err)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		ctx.Abort()
+		return
+	}
+
+	// 予約一覧を返す
+	conversion.ResponseJson(ctx, http.StatusOK, reviews)
 }

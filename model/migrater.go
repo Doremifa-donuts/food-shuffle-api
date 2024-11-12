@@ -49,6 +49,7 @@ func insertSampleData(db *gorm.DB) {
 	db.Create(SampleUsers)
 	db.Create(SampleRestaurantUsers)
 	db.Create(SampleGeneralUsers)
+	db.Create(sampleReservations)
 	fmt.Println("Inserted sample data")
 }
 

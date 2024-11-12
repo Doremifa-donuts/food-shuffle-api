@@ -63,6 +63,11 @@ func routing(router *gin.Engine) *gin.Engine {
 				})
 
 				// レストラン用のエンドポイントはこの中に追加していく
+				reservations := restaurants.Group("/reservations")
+				{
+					// 予約の一覧を取得する
+					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
+				}
 			}
 		}
 
