@@ -19,8 +19,6 @@ type GeneralUser struct {
 	ReviewFavorites []ReviewFavorite       `gorm:"foreignKey:UserUuid"`
 	Reservations    []Reservation          `gorm:"foreignKey:UserUuid"`
 	PopupGroups     []PopupGroupSubmission `gorm:"foreignKey:UserUuid"`
-	// User            User              `gorm:"foreignKey:UserUuid"`
-	User 			[]User 				   `gorm:"foreignKey:UserUuid;"`
 }
 
 // サンプルデータ

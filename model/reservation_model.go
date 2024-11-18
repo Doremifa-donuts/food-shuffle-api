@@ -11,11 +11,6 @@ type Reservation struct {
 	CourseUuid        *string   `gorm:"type:char(36)"`
 	CampaignUuid      *string   `gorm:"type:char(36)"`
 	ReservationStatus bool      `gorm:"type:bool;not null"`
-	RestaurantUser   []RestaurantUser `gorm:"foreignKey:RestaurantUuid"`
-	User             []User           `gorm:"foreignKey:UserUuid"`
-	Course           []Course         `gorm:"foreignKey:CourseUuid"`
-	Campaign         []UrgentCampaign `gorm:"foreignKey:CampaignUuid"`
-	
 }
 
 // サンプルデータ

@@ -5,9 +5,7 @@ import (
 )
 
 type PopupGroupSharedReviews struct {
-	PopupGroupUuid string    `gorm:"type:char(36);primary_key;"`
-	ReviewUuid     string    `gorm:"type:char(36);primary_key;"`
+	PopupGroupUuid string    `gorm:"type:char(36);foreignKey:PopupGroupUuid;primary_key;"`
+	ReviewUuid     string    `gorm:"type:char(36);foreignKey:ReviewUuid;primary_key;"`
 	CreatedAt      time.Time `gorm:"not null"`
-	PopupGroup     []PopupGroup	`gorm:"foreignKey:PopupGroupUuid;references:PopupGroupUuid"`
-	Review         []Review	`gorm:"foreignKey:ReviewUuid;references:ReviewUuid"`
 }
