@@ -1,25 +1,16 @@
 package service
 
 import (
+	"food-shuffle-api/dto/response"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReservationService struct{}
-
-// 予約一覧のレスポンスの構造体
-type ReservationListResponse struct {
-	ReservationUuid   string    // 予約UUID
-	ReservationDate   time.Time // 予約日
-	NumberOfPeople    int       // 予約人数
-	UserName          string    // ユーザー名
-	ReservationStatus bool      // 予約が通ってるかどうかのフラグ
-}
 
 // 予約の登録を行い、トークンを返す
 func (service *ReservationService) ResevationRegister(reservation model.Reservation) (string, error) {
@@ -57,9 +48,9 @@ func (service *ReservationService) ResevationRegister(reservation model.Reservat
 	return reservationUuid, nil
 }
 
-func (s ReservationService) GetReservationsByRestaurant(uuid string) ([]ReservationListResponse, error) {
+func (s ReservationService) GetReservationsByRestaurant(uuid string) ([]response.ReservationsByRestaurant, error) {
 	// 返り値を定義
-	var ReservationListResponses []ReservationListResponse
+	var ReservationListResponses []response.ReservationsByRestaurant
 
 	// トランザクションを開始する
 	err := repository.Transaction(func(tx *gorm.DB) error {
@@ -73,7 +64,7 @@ func (s ReservationService) GetReservationsByRestaurant(uuid string) ([]Reservat
 		for _, reservation := range reservations {
 
 			// 予約情報を格納する
-			ReservationListResponse := ReservationListResponse{
+			ReservationListResponse := response.ReservationsByRestaurant{
 				ReservationUuid:   reservation.ReservationUuid,
 				ReservationDate:   reservation.ReservationDate,
 				NumberOfPeople:    reservation.NumberOfPeople,

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	logging "food-shuffle-api/log"
 	"os"
 	"strconv"
@@ -24,7 +23,6 @@ func InitAuth() error {
 	}
 	// トークンの有効期限を取得
 	expiration, err := strconv.Atoi(os.Getenv("JWT_TOKEN_LIFETIME"))
-	fmt.Println("トークンの有効期限:", expiration)
 	if err != nil || expiration == 0 {
 		logging.LogError("JWT_TOKEN_LIFETIME is not set", nil)
 		return errors.New("JWT_TOKEN_LIFETIME is not set")

@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
+	"food-shuffle-api/model"
 	"io"
 	"log"
 	"os"
@@ -52,6 +53,22 @@ func InitDB() error {
 		return err
 	} else { // DBに接続できた場合
 		fmt.Println("Connected to database")
+	}
+
+	// DBのマイグレーションを実行する
+	result, err := model.MigrateDB(db)
+	if err != nil {
+		logging.LogError("Error migrating database", err)
+		return err
+	} else {
+		// マイグレーションが実行された場合、サンプルデータを挿入する
+		if result {
+			fmt.Println("Database migrated")
+			// サンプルデータを挿入する
+			model.InsertSampleData(db)
+		} else {
+			fmt.Println("Database already migrated")
+		}
 	}
 
 	return nil

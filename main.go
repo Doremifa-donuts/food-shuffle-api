@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
 	"food-shuffle-api/server"
 	"food-shuffle-api/utility/auth"
@@ -21,12 +20,6 @@ func main() {
 	err = repository.InitDB()
 	if err != nil {
 		fmt.Println("Error initializing database", err)
-	}
-
-	// モデルを初期化する
-	err = model.MigrateDB(repository.GetDB())
-	if err != nil {
-		fmt.Println("Error migrating database", err)
 	}
 
 	// 認証関連のモデルを初期化する
