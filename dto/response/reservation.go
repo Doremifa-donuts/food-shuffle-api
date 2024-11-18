@@ -1,0 +1,12 @@
+package response
+
+import "time"
+
+// 予約一覧のレスポンスの構造体
+type ReservationsByRestaurant struct {
+	ReservationUuid   string    // 予約UUID
+	ReservationDate   time.Time // 予約日
+	NumberOfPeople    int       // 予約人数
+	UserName          string    // ユーザー名
+	ReservationStatus bool      // 予約が通ってるかどうかのフラグ
+}
