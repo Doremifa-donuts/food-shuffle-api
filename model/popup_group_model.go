@@ -10,3 +10,6 @@ type PopupGroup struct {
 	Users          []PopupGroupSubmission    `gorm:"foreignKey:PopupGroupUuid"`
 	SharedReviews  []PopupGroupSharedReviews `gorm:"foreignKey:PopupGroupUuid"`
 }
+
+// サンプルデータ
+var samplePopupGroups = []PopupGroup{}

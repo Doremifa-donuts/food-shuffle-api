@@ -10,7 +10,7 @@ const (
 
 type RestaurantUser struct {
 	RestaurantUuid  string           `gorm:"type:char(36);primary_key"`  // データの管理を楽にするためだけのカラム　サロゲートキー
-	RestoName       string           `gorm:"type:varchar(100);not null"` // レストラン名
+	RestaurantName  string           `gorm:"type:varchar(100);not null"` // レストラン名
 	Address         string           `gorm:"type:varchar(255);not null"` // 住所
 	Images          StringArray      `gorm:"type:json;not null"`         // 画像のパスをjsonの配列で格納することによって複数保存することが可能になる
 	Url             string           `gorm:"type:varchar(255);not null"` // WebサイトなどのURL
@@ -23,9 +23,9 @@ type RestaurantUser struct {
 	UrgentCampaigns []UrgentCampaign `gorm:"foreignKey:RestaurantUuid"`
 }
 
-var SampleRestaurantUsers = RestaurantUser{
+var sampleRestaurantUsers = RestaurantUser{
 	RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-	RestoName:      "sample_resto_name",
+	RestaurantName: "sample_resto_name",
 	Address:        "sample_address",
 	Images:         StringArray{"sample_image1", "sample_image2"},
 	Url:            "http://google.co.jp",

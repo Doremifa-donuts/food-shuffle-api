@@ -19,21 +19,26 @@ type User struct {
 }
 
 // サンプルデータ
-var SampleUsers = []User{
+var sampleUsers = []User{
 	{
 		UserUuid:    "a0adb027-0f54-4c1a-9ed3-86041c863344",
-		MailAddress: "general@test.com",
+		MailAddress: "poster@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
 		Tell:        "08012341234",
-		JtiToken:    "general_jti_token",
+		UserType:    General,
+	},
+	{
+		UserUuid: "91a78381-f472-496b-90e3-2c66a33391d1",
+		MailAddress: "viewer@test.com",
+		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
+		Tell:        "08012341234",
 		UserType:    General,
 	},
 	{
 		UserUuid:    "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		MailAddress: "resto@test.com",
+		MailAddress: "restaurant@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
 		Tell:        "08056785678",
-		JtiToken:    "resto_jti_token",
 		UserType:    Restaurant,
 	},
 }

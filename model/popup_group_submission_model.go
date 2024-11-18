@@ -8,3 +8,6 @@ type PopupGroupSubmission struct {
 	UserUuid       string    `gorm:"type:char(36);foreignKey:UserUuid;primary_key"`       // ユーザーUUID
 	CreatedAt      time.Time `gorm:"not null"`                                            // ユーザーはグループに所属した日時に基づいてグループをソートできる
 }
+
+// サンプルデータ
+var samplePopupGroupSubmissions = []PopupGroupSubmission{}

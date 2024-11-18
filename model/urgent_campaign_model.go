@@ -10,3 +10,6 @@ type UrgentCampaign struct {
 	CreatedAt      time.Time     `gorm:"not null"`
 	Reservations   []Reservation `gorm:"foreignKey:CampaignUuid"` // 作成日時
 }
+
+// サンプルデータ
+var sampleUrgentCampaigns = []UrgentCampaign{}
