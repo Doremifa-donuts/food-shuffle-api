@@ -21,7 +21,7 @@ func routing(router *gin.Engine) *gin.Engine {
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
-			// 保存した画像へのアクセスを許可
+			// 保存した画像へのアクセスを許可　//HACK: 権限をチェックする必要がある
 			auth.Static("/images", "public/images") // v1/auth/images
 
 			// テスト用のエンドポイント
@@ -44,12 +44,29 @@ func routing(router *gin.Engine) *gin.Engine {
 				// レビュー関連
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{
-					reviews.POST("/post", handler.ReviewPostHandler) // v1/auth/users/reviews/post
+					// すれ違いで受け取ったレビューの一覧を取得する
+					reviews.GET("/recieves", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/recieves
+
+					// アーカイブに保存されたレビューの一覧を取得する	//TODO:
+					reviews.GET("/archives", handler.GetArchivedReviewsByUserHandler) // v1/auth/users/reviews/archives
+
+					// いいねをしたレビューの一覧を取得する		//TODO:
+					reviews.GET("/likes", handler.GetLikedReviewsByUserHandler) // v1/auth/users/reviews/likes
+
+					// グループにシェアしたレビューの一覧を取得する	//TODO:
+					reviews.GET("/shares") // v1/auth/users/reviews/shares
+
+					// 自分が投稿したレビューの一覧を取得する		//TODO:
+					reviews.GET("/posts") // v1/auth/users/reviews/posts
+
+					// レビューを投稿する
+					reviews.POST("/post", handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
+
 				}
 
 				// 一般ユーザー用のエンドポイントはこの中に追加していく
 
-				generals.POST("/reservation", handler.ReservationRegistorHandler)	// v1/auth/users/reservation
+				generals.POST("/reservation", handler.ReservationRegistorHandler) // v1/auth/users/reservation
 			}
 
 			// レストランユーザー用のエンドポイント

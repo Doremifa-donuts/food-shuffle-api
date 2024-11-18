@@ -1,6 +1,7 @@
 package service
 
 import (
+	"food-shuffle-api/dto/response"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
 
@@ -10,6 +11,83 @@ import (
 
 type ReviewService struct{}
 
+// すれ違いで受け取ったレビューを取得する
+func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
+	// 受け取ったレビューを格納するテーブルに対して、レビューを取得する
+	return s.getReviewsByUser(uuid, repository.ListReceivedReviewUuidsByUserUuid)
+}
+
+// アーカイブに登録したレビューを取得する
+func (s *ReviewService) GetArchivedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
+	// アーカイブに登録したレビューを格納するテーブルに対して、レビューを取得する
+	return s.getReviewsByUser(uuid, repository.ListArchivedReviewUuidsByUserUuid)
+}
+
+// ユーザーがいいねしたレビューを取得する
+func (s *ReviewService) GetLikedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
+	// いいねしたレビューを格納するテーブルに対して、レビューを取得する
+	return s.getReviewsByUser(uuid, repository.ListLikedReviewUuidsByUserUuid)
+}
+
+// ユーザーのレビューを取得する　コールバックでレビューの種類を分ける
+func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB, uuid string) ([]string, error)) ([]response.GetReviewsByUser, error) {
+	// レスポンスの型を定義する
+	var res []response.GetReviewsByUser
+	// ユーザーのレビューを取得する
+
+	err := repository.Transaction(func(tx *gorm.DB) error {
+
+		// ユーザーが取得するレビューのUUID
+		var reviewUuids []string
+		// ユーザーのレビューを取得する
+		reviewUuids, err := callback(tx, uuid)
+		if err != nil {
+			return err
+		}
+
+		// レビューの構造体
+		var reviews []model.Review
+
+		// レビューの内容を取得する
+		reviews, err = repository.ListReviewsByReviewUuids(tx, reviewUuids)
+		if err != nil {
+			return err
+		}
+
+		// それぞれに不足している項目を取得する
+		for _, review := range reviews {
+			// レストラン名を取得する
+			restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
+			if err != nil {
+				return err
+			}
+
+			// ユーザーのアイコンを取得する
+			icon, err := repository.GetIconByUserUuid(tx, review.UserUuid)
+			if err != nil {
+				return err
+			}
+
+			// レビューをレスポンスに追加する
+			res = append(res, response.GetReviewsByUser{
+				RestaurantUuid: review.RestaurantUuid,
+				RestaurantName: restaurantName,
+				Comment:        review.Comment,
+				PostedAt:       review.CreatedAt,
+				Images:         review.ReviewImages,
+				Icon:           icon,
+			})
+		}
+
+		// エラーが出なかった場合はnilでトランザクションを終了する
+		return nil
+	})
+
+	// レスポンスを返却する
+	return res, err
+}
+
+// ユーザーがレビューを投稿する
 func (s *ReviewService) PostReview(review model.Review) (string, error) {
 
 	// ユーザーのレビューをDBに保存する

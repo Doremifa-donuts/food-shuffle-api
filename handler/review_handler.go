@@ -16,17 +16,73 @@ import (
 // サービス層のメソッドは構造体と紐づいて管理されているため、処理を投げる構造体を呼び出す
 var ReviewService = service.ReviewService{}
 
-// レビューを投稿する
-func ReviewPostHandler(ctx *gin.Context) {
+// すれ違いで受け取ったレビューの一覧を取得する
+func GetReceivedReviewsByUserHandler(ctx *gin.Context) {
+	// ユーザーIDを取得する
+	uuid, _ := ctx.Get("uuid")
+	// 型変換
+	uuidAdjusted := uuid.(string)
 
+	// レビュー一覧を取得するサービスに投げる
+	reviews, err := ReviewService.GetReceivedReviewsByUser(uuidAdjusted)
+	// エラーハンドリング
+	if err != nil {
+		// エラーを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// レビュー一覧を返す
+	conversion.ResponseJson(ctx, http.StatusOK, reviews)
+}
+
+//　アーカイブに保存されたレビューの一覧を取得する
+func GetArchivedReviewsByUserHandler(ctx *gin.Context) {
+	// ユーザーIDを取得する
+	uuid, _ := ctx.Get("uuid")
+	// 型変換
+	uuidAdjusted := uuid.(string)
+
+	// レビュー一覧を取得するサービスに投げる
+	reviews, err := ReviewService.GetArchivedReviewsByUser(uuidAdjusted)
+	// エラーハンドリング
+	if err != nil {
+		// エラーを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// レビュー一覧を返す
+	conversion.ResponseJson(ctx, http.StatusOK, reviews)
+}
+
+// いいねをしたレビューの一覧を取得する
+func GetLikedReviewsByUserHandler(ctx *gin.Context) {
+	// ユーザーIDを取得する
+	uuid, _ := ctx.Get("uuid")
+	// 型変換
+	uuidAdjusted := uuid.(string)
+
+	// レビュー一覧を取得するサービスに投げる
+	reviews, err := ReviewService.GetLikedReviewsByUser(uuidAdjusted)
+	// エラーハンドリング
+	if err != nil {
+		// エラーを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// レビュー一覧を返す
+	conversion.ResponseJson(ctx, http.StatusOK, reviews)
+}
+
+
+// レビューを投稿する
+func PostReviewByUserHandler(ctx *gin.Context) {
 	// リクエストを構造体にバインドする
 	var review model.Review
 	// idを構造体にバインドする
-	uuid, ok := ctx.Get("uuid")
-	if !ok {
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		return
-	}
+	uuid, _ := ctx.Get("uuid")
 
 	// uuidを構造体にバインドする
 	review.UserUuid = uuid.(string)

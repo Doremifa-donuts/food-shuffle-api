@@ -20,3 +20,13 @@ func GetGeneralUserByUserUuid(db *gorm.DB, userUuid string) (model.GeneralUser, 
 	}
 	return generalUser, nil
 }
+
+// ユーザーのUUIDからアイコンを取得する
+func GetIconByUserUuid(db *gorm.DB, userUuid string) (string, error) {
+	var generalUser model.GeneralUser
+	err := db.Where("user_uuid = ?", userUuid).First(&generalUser).Error
+	if err != nil {
+		return "", err
+	}
+	return generalUser.Icon, nil
+}
