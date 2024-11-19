@@ -96,7 +96,7 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 	}
 
 	// ユーザーのアカウントタイプをチェック
-	err := repository.IsUserType(repository.GetDB(), uuid, userType)
+	err := repository.ExistsUserByUserUuidAndUserType(repository.GetDB(), uuid, userType)
 	if err != nil {
 		// エラーを分類する
 		// リソースが見つからない場合は、権限のないエンドポイントへの通信を行ったことを意味する

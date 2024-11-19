@@ -10,16 +10,17 @@ const (
 
 // 一般利用者特有の情報
 type GeneralUser struct {
-	UserUuid        string                 `gorm:"type:char(36);primary_key;"`
-	UserName        string                 `gorm:"type:varchar(50);not null" `                                        // ユーザー名
-	ShareStatus     ShareStatus            `gorm:"type:enum('Active', 'Silent', 'Disabled');default:Active;not null"` // 共有ステータス Active: 通知あり Silent: 通知なし Disabled: 無効
-	Icon            string                 `gorm:"type:char(36);not null"`
-	Reviews         []Review               `gorm:"foreignKey:UserUuid"`
-	ReviewReceives  []ReviewReceive        `gorm:"foreignKey:UserUuid"`
-	ReviewArchives  []ReviewArchive        `gorm:"foreignKey:UserUuid"`
-	ReviewFavorites []ReviewLike           `gorm:"foreignKey:UserUuid"`
-	Reservations    []Reservation          `gorm:"foreignKey:UserUuid"`
-	PopupGroups     []PopupGroupSubmission `gorm:"foreignKey:UserUuid"`
+	UserUuid            string                  `gorm:"type:char(36);primary_key;"`
+	UserName            string                  `gorm:"type:varchar(50);not null" `                                        // ユーザー名
+	ShareStatus         ShareStatus             `gorm:"type:enum('Active', 'Silent', 'Disabled');default:Active;not null"` // 共有ステータス Active: 通知あり Silent: 通知なし Disabled: 無効
+	Icon                string                  `gorm:"type:char(36);not null"`
+	Reviews             []Review                `gorm:"foreignKey:UserUuid"`
+	ReviewReceives      []ReviewReceive         `gorm:"foreignKey:UserUuid"`
+	ReviewArchives      []ReviewArchive         `gorm:"foreignKey:UserUuid"`
+	ReviewFavorites     []ReviewLike            `gorm:"foreignKey:UserUuid"`
+	Reservations        []Reservation           `gorm:"foreignKey:UserUuid"`
+	PopupGroups         []PopupGroupSubmission  `gorm:"foreignKey:UserUuid"`
+	UserVisitedRestaurants []UserVisitedRestaurant `gorm:"foreignKey:UserUuid"`
 }
 
 // サンプルデータ

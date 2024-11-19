@@ -12,12 +12,12 @@ func CreateUser(db *gorm.DB, user model.User) error {
 }
 
 // UserUUIDが一致するユーザーのJtiTokenを更新する
-func SaveJtiByUserUuid(db *gorm.DB, userUuid string, jtiToken string) error {
+func UpdateJtiTokenByUserUuid(db *gorm.DB, userUuid string, jtiToken string) error {
 	return db.Model(&model.User{}).Where("user_uuid = ?", userUuid).Update("jti_token", jtiToken).Error
 }
 
 // UserUUIDとJtiTokenの組み合わせが一致するか確認
-func CheckJtiUser(db *gorm.DB, userUuid string, jtiToken string) error {
+func ExistsUserByUserUuidAndJtiToken(db *gorm.DB, userUuid string, jtiToken string) error {
 	var user model.User
 	// UserUUIDとJtiTokenの組み合わせが一致するか確認
 	err := db.Where("user_uuid = ? AND jti_token = ?", userUuid, jtiToken).First(&user).Error
@@ -39,9 +39,9 @@ func GetUserByMailAddress(db *gorm.DB, mailAddress string) (model.User, error) {
 }
 
 // ユーザーUUIDが一致するユーザーのアカウントタイプを取得する
-func IsUserType(db *gorm.DB, uuid string, userType model.UserType) error {
+func ExistsUserByUserUuidAndUserType(db *gorm.DB, userUuid string, userType model.UserType) error {
 	var user model.User
-	err := db.Where("user_uuid = ? AND user_type = ?", uuid, userType).First(&user).Error
+	err := db.Where("user_uuid = ? AND user_type = ?", userUuid, userType).First(&user).Error
 	if err != nil {
 		return err
 	}

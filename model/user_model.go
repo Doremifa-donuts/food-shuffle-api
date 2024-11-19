@@ -28,7 +28,7 @@ var sampleUsers = []User{
 		UserType:    General,
 	},
 	{
-		UserUuid: "91a78381-f472-496b-90e3-2c66a33391d1",
+		UserUuid:    "91a78381-f472-496b-90e3-2c66a33391d1",
 		MailAddress: "viewer@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
 		Tell:        "08012341234",

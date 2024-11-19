@@ -1,9 +1,13 @@
 package service
 
 import (
+	"errors"
 	"food-shuffle-api/dto/response"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
+	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/prefix"
+	"net/http"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -62,11 +66,19 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 				return err
 			}
 
+			// Imagesにプレフィックスを追加する
+			for i, image := range review.Images {
+				review.Images[i] = prefix.ImagePrefixReview + image
+			}
+
 			// ユーザーのアイコンを取得する
 			icon, err := repository.GetIconByUserUuid(tx, review.UserUuid)
 			if err != nil {
 				return err
 			}
+
+			// アイコンにプレフィックスを追加する
+			icon = prefix.ImagePrefixUserIcon + icon
 
 			// レビューをレスポンスに追加する
 			res = append(res, response.GetReviewsByUser{
@@ -74,7 +86,7 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 				RestaurantName: restaurantName,
 				Comment:        review.Comment,
 				PostedAt:       review.CreatedAt,
-				Images:         review.ReviewImages,
+				Images:         review.Images,
 				Icon:           icon,
 			})
 		}
@@ -90,19 +102,28 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 // ユーザーがレビューを投稿する
 func (s *ReviewService) PostReview(review model.Review) (string, error) {
 
-	// ユーザーのレビューをDBに保存する
-	// レビューUUIDを生成する
-	reviewUuid, err := uuid.NewV7()
-	if err != nil {
-		return "", err
-	}
-	review.ReviewUuid = reviewUuid.String()
-
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err := repository.Transaction(func(tx *gorm.DB) error {
+
+		// レストランに訪れたことがあるかを確認する
+		err := repository.ExistsUserVisitedRestaurantByUserUuid(tx, review.UserUuid)
+		if err != nil {
+			// レストランに訪れたことがない場合
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return custom_error.NewError(http.StatusForbidden, "You have not visited the restaurant")
+			}
+			return err
+		}
+		// レビューUUIDを生成する
+		reviewUuid, err := uuid.NewV7()
+		if err != nil {
+			return err
+		}
+		// レビューUUIDを追加する
+		review.ReviewUuid = reviewUuid.String()
 
 		// ユーザーのレビューをDBに保存する
-		err := repository.CreateReview(tx, &review)
+		err = repository.CreateReview(tx, &review)
 		if err != nil {
 			return err
 		}

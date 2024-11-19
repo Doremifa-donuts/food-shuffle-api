@@ -81,6 +81,11 @@ func MigrateDB(db *gorm.DB) (bool, error) {
 			log.Fatalf("failed to migrate Reservation: %v", err)
 		}
 
+		err = db.AutoMigrate(&UserVisitedRestaurant{})
+		if err != nil {
+			log.Fatalf("failed to migrate userVisitedRestaurants: %v", err)
+		}
+
 		fmt.Println("Database migrated")
 		return true, err
 	}
@@ -151,6 +156,11 @@ func InsertSampleData(db *gorm.DB) error {
 	err = db.Create(sampleReservations).Error
 	if err != nil {
 		logging.LogError("Error inserting sample data for Reservations", err)
+	}
+
+	err = db.Create(sampleUserVisitedRestaurants).Error
+	if err != nil {
+		logging.LogError("Error inserting sample data for UserVisitedRestaurants", err)
 	}
 
 	return nil
