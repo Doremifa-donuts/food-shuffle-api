@@ -67,5 +67,5 @@ func GeneralUserRegisterHandler(ctx *gin.Context) {
 	}
 
 	// 成功レスポンス
-	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"Token": result})
+	conversion.ResponseJson(ctx, http.StatusOK, result)
 }

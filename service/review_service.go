@@ -1,13 +1,11 @@
 package service
 
 import (
-	"errors"
-	"food-shuffle-api/dto/response"
+	"food-shuffle-api/dto"
+	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
-	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
-	"net/http"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -16,36 +14,49 @@ import (
 type ReviewService struct{}
 
 // すれ違いで受け取ったレビューを取得する
-func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
-	// 受け取ったレビューを格納するテーブルに対して、レビューを取得する
-	return s.getReviewsByUser(uuid, repository.ListReceivedReviewUuidsByUserUuid)
+func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
+	// ステータスを Unclassified に限定した構造体に変換する
+	reviewFlag := model.UserReviewFlag{
+		UserUuid:     uuid,
+		ReviewStatus: model.Unclassified,
+	}
+	// 受け取ったレビューを取得する
+	return s.getReviewsByUser(reviewFlag)
 }
 
 // アーカイブに登録したレビューを取得する
-func (s *ReviewService) GetArchivedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
-	// アーカイブに登録したレビューを格納するテーブルに対して、レビューを取得する
-	return s.getReviewsByUser(uuid, repository.ListArchivedReviewUuidsByUserUuid)
+func (s *ReviewService) GetArchivedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
+	// ステータスを Interested に限定した構造体に変換する
+	reviewFlag := model.UserReviewFlag{
+		UserUuid:     uuid,
+		ReviewStatus: model.Interested,
+	}
+	// アーカイブ状態のレビューを取得する
+	return s.getReviewsByUser(reviewFlag)
 }
 
 // ユーザーがいいねしたレビューを取得する
-func (s *ReviewService) GetLikedReviewsByUser(uuid string) ([]response.GetReviewsByUser, error) {
+func (s *ReviewService) GetLikedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
+	// ステータスをLikedに限定した構造体に変換する
+	reviewFlag := model.UserReviewFlag{
+		UserUuid:     uuid,
+		ReviewStatus: model.Iiked,
+	}
 	// いいねしたレビューを格納するテーブルに対して、レビューを取得する
-	return s.getReviewsByUser(uuid, repository.ListLikedReviewUuidsByUserUuid)
+	return s.getReviewsByUser(reviewFlag)
 }
 
 // ユーザーのレビューを取得する　コールバックでレビューの種類を分ける
-func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB, uuid string) ([]string, error)) ([]response.GetReviewsByUser, error) {
-	// レスポンスの型を定義する
-	var res []response.GetReviewsByUser
-	// ユーザーのレビューを取得する
-
-	err := repository.Transaction(func(tx *gorm.DB) error {
-
+func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res []dto.GetReviewsByUser, err error) {
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
 		// ユーザーが取得するレビューのUUID
 		var reviewUuids []string
+
 		// ユーザーのレビューを取得する
-		reviewUuids, err := callback(tx, uuid)
+		reviewUuids, err := repository.ListReviewUuidsByUserUuidAndReviewStatus(tx, reviewFlag)
 		if err != nil {
+			logging.LogError("failed to get reviews", err)
 			return err
 		}
 
@@ -55,6 +66,7 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 		// レビューの内容を取得する
 		reviews, err = repository.ListReviewsByReviewUuids(tx, reviewUuids)
 		if err != nil {
+			logging.LogError("failed to get reviews", err)
 			return err
 		}
 
@@ -63,6 +75,7 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 			// レストラン名を取得する
 			restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
 			if err != nil {
+				logging.LogError("failed to get restaurant name", err)
 				return err
 			}
 
@@ -74,6 +87,7 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 			// ユーザーのアイコンを取得する
 			icon, err := repository.GetIconByUserUuid(tx, review.UserUuid)
 			if err != nil {
+				logging.LogError("failed to get icon", err)
 				return err
 			}
 
@@ -81,7 +95,7 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 			icon = prefix.ImagePrefixUserIcon + icon
 
 			// レビューをレスポンスに追加する
-			res = append(res, response.GetReviewsByUser{
+			res = append(res, dto.GetReviewsByUser{
 				RestaurantUuid: review.RestaurantUuid,
 				RestaurantName: restaurantName,
 				Comment:        review.Comment,
@@ -96,40 +110,35 @@ func (s *ReviewService) getReviewsByUser(uuid string, callback func(tx *gorm.DB,
 	})
 
 	// レスポンスを返却する
-	return res, err
+	return
 }
 
 // ユーザーがレビューを投稿する
-func (s *ReviewService) PostReview(review model.Review) (string, error) {
-
+func (s *ReviewService) PostReview(bReview model.Review) (res dto.PostReview, err error) {
 	// トランザクションを開始する
-	err := repository.Transaction(func(tx *gorm.DB) error {
-
-		// レストランに訪れたことがあるかを確認する
-		err := repository.ExistsUserVisitedRestaurantByUserUuid(tx, review.UserUuid)
-		if err != nil {
-			// レストランに訪れたことがない場合
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return custom_error.NewError(http.StatusForbidden, "You have not visited the restaurant")
-			}
-			return err
-		}
+	err = repository.Transaction(func(tx *gorm.DB) error {
 		// レビューUUIDを生成する
 		reviewUuid, err := uuid.NewV7()
 		if err != nil {
+			logging.LogError("failed to generate review uuid", err)
 			return err
 		}
-		// レビューUUIDを追加する
-		review.ReviewUuid = reviewUuid.String()
+
+		// レビューUUIDを格納する
+		bReview.ReviewUuid = reviewUuid.String()
+		res.ReviewUuid = reviewUuid.String()
 
 		// ユーザーのレビューをDBに保存する
-		err = repository.CreateReview(tx, &review)
+		err = repository.CreateReview(tx, &bReview)
 		if err != nil {
+			logging.LogError("failed to create review", err)
 			return err
 		}
+
+		// トランザクションを終了する
 		return nil
 	})
 
-	return review.ReviewUuid, err
-
+	// レスポンスを返却する
+	return
 }

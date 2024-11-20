@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"food-shuffle-api/bcrypto"
+	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
@@ -17,16 +18,12 @@ import (
 type GeneralUserService struct{}
 
 // 一般ユーザーのアカウントを作成し、トークンを返す
-func (service *GeneralUserService) Register(user model.User, generalUser model.GeneralUser) (string, error) {
-
-	// レスポンスの型を初期化する
-	var tokenString string
-
+func (service *GeneralUserService) Register(bUser model.User, generalUser model.GeneralUser) (res dto.LoginUser, err error) {
 	// トランザクションを開始する
-	err := repository.Transaction(func(tx *gorm.DB) error {
+	err = repository.Transaction(func(tx *gorm.DB) error {
 
 		// メールアドレスを元にユーザーが存在するかを確認する
-		_, err := repository.GetUserByMailAddress(tx, user.MailAddress)
+		_, err := repository.GetUserByMailAddress(tx, bUser.MailAddress)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) { // 存在しない以外のエラーがある場合
 			logging.LogError("failed to get user", err)
 			return err
@@ -44,44 +41,47 @@ func (service *GeneralUserService) Register(user model.User, generalUser model.G
 		}
 
 		// それぞれのテーブルにuuidを挿入する
-		user.UserUuid = uuid.String()
+		bUser.UserUuid = uuid.String()
 		generalUser.UserUuid = uuid.String()
 
 		// パスワードをハッシュ化する
-		hashedPassword, err := bcrypto.GetHashPassword(user.Password)
+		hashedPassword, err := bcrypto.GetHashPassword(bUser.Password)
 		if err != nil {
 			logging.LogError("failed to hash password", err)
 			return err
 		}
+		
 		// ハッシュ化したパスワードに入れ替える
-		user.Password = hashedPassword
+		bUser.Password = hashedPassword
 
 		// ユーザータイプを一般に設定する
-		user.UserType = model.General
+		bUser.UserType = model.General
 
 		// 挿入するデータが完成したのでここから挿入していく
 		// ユーザーテーブルに一般ユーザーを追加する
-		err = repository.CreateUser(tx, user)
+		err = repository.CreateUser(tx, bUser)
 		if err != nil {
+			logging.LogError("failed to create user", err)
 			return err
 		}
 
 		// 一般ユーザーテーブルに追加情報を追加する
 		err = repository.CreateGeneralUser(tx, generalUser)
 		if err != nil {
+			logging.LogError("failed to create general user", err)
 			return err
 		}
 
 		// トークンを発行する
-		tokenString, err = auth.GenerateToken(tx, &user)
+		res.JtiToken, err = auth.GenerateToken(tx, &bUser)
 		if err != nil {
+			logging.LogError("failed to generate token", err)
 			return err
 		}
 
 		return nil
-
 	})
 
-	// ユーザーテーブルに共通事項を追加する
-	return tokenString, err
+	// レスポンスを返却する
+	return
 }

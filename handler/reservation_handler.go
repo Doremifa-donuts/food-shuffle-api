@@ -57,7 +57,7 @@ func ReservationRegistorHandler(ctx *gin.Context) {
 	}
 
 	//成功レスポンス
-	conversion.ResponseJson(ctx, http.StatusOK, gin.H{"ReservationUuid": result})
+	conversion.ResponseJson(ctx, http.StatusOK, result)
 }
 
 // 予約一覧を取得するハンドラー

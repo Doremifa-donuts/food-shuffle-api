@@ -46,19 +46,9 @@ func MigrateDB(db *gorm.DB) (bool, error) {
 			log.Fatalf("failed to migrate Review: %v", err)
 		}
 
-		err = db.AutoMigrate(&ReviewLike{})
+		err = db.AutoMigrate(&UserReviewFlag{})
 		if err != nil {
-			log.Fatalf("failed to migrate ReviewLike: %v", err)
-		}
-
-		err = db.AutoMigrate(&ReviewArchive{})
-		if err != nil {
-			log.Fatalf("failed to migrate ReviewArchive: %v", err)
-		}
-
-		err = db.AutoMigrate(&ReviewReceive{})
-		if err != nil {
-			log.Fatalf("failed to migrate ReviewReceive: %v", err)
+			log.Fatalf("failed to migrate UserReviewFlag: %v", err)
 		}
 
 		err = db.AutoMigrate(&PopupGroupSharedReviews{})
@@ -123,19 +113,9 @@ func InsertSampleData(db *gorm.DB) error {
 		logging.LogError("Error inserting sample data for Reviews", err)
 	}
 
-	err = db.Create(sampleReviewLikes).Error
-	if err != nil {
-		logging.LogError("Error inserting sample data for ReviewLikes", err)
-	}
-
-	err = db.Create(sampleReviewArchives).Error
+	err = db.Create(sampleUserReviewFlag).Error
 	if err != nil {
 		logging.LogError("Error inserting sample data for ReviewArchives", err)
-	}
-
-	err = db.Create(sampleReviewReceives).Error
-	if err != nil {
-		logging.LogError("Error inserting sample data for ReviewReceives", err)
 	}
 
 	err = db.Create(samplePopupGroupSharedReviews).Error

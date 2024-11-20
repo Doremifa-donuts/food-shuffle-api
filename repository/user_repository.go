@@ -38,7 +38,7 @@ func GetUserByMailAddress(db *gorm.DB, mailAddress string) (model.User, error) {
 	return user, nil
 }
 
-// ユーザーUUIDが一致するユーザーのアカウントタイプを取得する
+// ユーザーUUIDとUserTypeの組み合わせが一致するか確認
 func ExistsUserByUserUuidAndUserType(db *gorm.DB, userUuid string, userType model.UserType) error {
 	var user model.User
 	err := db.Where("user_uuid = ? AND user_type = ?", userUuid, userType).First(&user).Error

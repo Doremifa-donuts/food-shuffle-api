@@ -1,4 +1,4 @@
-package response
+package dto
 
 import "time"
 
@@ -10,4 +10,9 @@ type GetReviewsByUser struct {
 	PostedAt       time.Time // レビューの投稿日時
 	Images         []string  // レビューの画像
 	Icon           string    // ユーザーのアイコン
+}
+
+// レビュー投稿のレスポンス
+type PostReview struct {
+	ReviewUuid string // レビューUUID
 }

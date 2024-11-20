@@ -1,4 +1,4 @@
-package response
+package dto
 
 import "time"
 
@@ -9,4 +9,9 @@ type ReservationsByRestaurant struct {
 	NumberOfPeople    int       // 予約人数
 	UserName          string    // ユーザー名
 	ReservationStatus bool      // 予約が通ってるかどうかのフラグ
+}
+
+// 予約登録時のリクエストの構造体
+type PostReservation struct {
+	ReservationUuid string // 予約UUID
 }

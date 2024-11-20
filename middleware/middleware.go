@@ -83,20 +83,14 @@ func Auth() gin.HandlerFunc {
 }
 
 // ユーザーのアカウントが適切かを判定する
-func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
+func authorizeUserType(ctx *gin.Context, userType model.UserType) {
 	// idが存在しなければエラーを返す
-	if uuid == "" {
-		// エラーログを書き込む
-		logging.LogError("uuid not found", nil)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		// 処理を終了する
-		ctx.Abort()
-	}
+	uuid, _ := ctx.Get("uuid")
+	// 型アサーション
+	uuidAdjusted := uuid.(string)
 
 	// ユーザーのアカウントタイプをチェック
-	err := repository.ExistsUserByUserUuidAndUserType(repository.GetDB(), uuid, userType)
+	err := repository.ExistsUserByUserUuidAndUserType(repository.GetDB(), uuidAdjusted, userType)
 	if err != nil {
 		// エラーを分類する
 		// リソースが見つからない場合は、権限のないエンドポイントへの通信を行ったことを意味する
@@ -129,29 +123,51 @@ func authorizeUserType(ctx *gin.Context, uuid string, userType model.UserType) {
 // ユーザータイプが一般ユーザーであることを確認する
 func AllowGeneralUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		//
-		uuid, ok := ctx.Get("uuid")
-		if !ok {
-			logging.LogError("uuid not found", nil)
-			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-			ctx.Abort()
-			return
-		}
-		authorizeUserType(ctx, uuid.(string), model.General)
+		authorizeUserType(ctx, model.General)
 	}
 }
 
 // ユーザータイプがレストランユーザーであることを確認する
 func AllowRestaurantUsers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		authorizeUserType(ctx, model.Restaurant)
+	}
+}
+
+// レビュー投稿する権限があるかを確認する
+func AllowReviewPost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		//
-		uuid, ok := ctx.Get("uuid")
-		if !ok {
-			logging.LogError("uuid not found", nil)
-			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		uuid, _ := ctx.Get("uuid")
+
+		// 型変換
+		uuidAdjusted := uuid.(string)
+
+		// その店舗に訪れたことがあるかを確認する
+		err := repository.ExistsUserVisitedRestaurantByUserUuid(repository.GetDB(), uuidAdjusted)
+		if err != nil {
+			// エラーを分類する
+			// リソースが見つからない場合は、権限のないエンドポイントへの通信を行ったことを意味する
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// エラーログを書き込む
+				logging.LogError("Your user has not visited the restaurant.", err)
+
+				// エラーレスポンスを返す
+				conversion.ResponseJson(ctx, http.StatusForbidden, nil)
+
+				// 処理を終了する
+				ctx.Abort()
+				return
+			}
+			// それ以外のエラー
+			logging.LogError("mysql error", err)
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			// 処理を終了する
 			ctx.Abort()
 			return
 		}
-		authorizeUserType(ctx, uuid.(string), model.Restaurant)
+
+		// 次の処理へ
+		ctx.Next()
 	}
 }

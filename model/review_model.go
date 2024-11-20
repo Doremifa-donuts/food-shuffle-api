@@ -10,9 +10,7 @@ type Review struct {
 	Images                  StringArray               `gorm:"type:json;not null"`                      // レビューに関連する画像のパスをJSONで保存する
 	CreatedAt               time.Time                 `gorm:"not null"`                                // レビューを投稿した日時
 	Comment                 string                    `gorm:"type:text;not null"`                      // レビューのコメント
-	ReviewArchives          []ReviewArchive           `gorm:"foreignKey:ReviewUuid"`
-	ReviewFavorites         []ReviewLike              `gorm:"foreignKey:ReviewUuid"`
-	ReviewReceives          []ReviewReceive           `gorm:"foreignKey:ReviewUuid"`
+	UserReviewFlags         []UserReviewFlag          `gorm:"foreignKey:ReviewUuid"`
 	PopupGroupSharedReviews []PopupGroupSharedReviews `gorm:"foreignKey:ReviewUuid"`
 }
 

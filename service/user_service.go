@@ -2,6 +2,8 @@ package service
 
 import (
 	"food-shuffle-api/bcrypto"
+	"food-shuffle-api/dto"
+	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
@@ -14,31 +16,27 @@ import (
 type UserService struct{}
 
 // ログイン処理を行う
-func (userService *UserService) Login(user model.User) (string, error) {
-
-	// dbから取得したパスワードと比較するために、パスワードを保持しておく
-	inputPassword := user.Password
-
-	// レスポンスのを初期化する
-	var tokenString string
-
+func (userService *UserService) Login(bUser model.User) (res dto.LoginUser, err error) {
 	// トランザクションを開始する
-	err := repository.Transaction(func(tx *gorm.DB) error {
+	err = repository.Transaction(func(tx *gorm.DB) error {
 		// メールアドレスを元にユーザーが存在するかを確認する
-		user, err := repository.GetUserByMailAddress(tx, user.MailAddress)
+		user, err := repository.GetUserByMailAddress(tx, bUser.MailAddress)
 		if err != nil {
+			logging.LogError("failed to get user", err)
 			return custom_error.NewError(http.StatusNotFound, "User not found")
 		}
 
 		// パスワードが一致するか確認する
-		err = bcrypto.CheckPasswordHash(user.Password, inputPassword)
+		err = bcrypto.CheckPasswordHash(user.Password, bUser.Password)
 		if err != nil {
+			logging.LogError("failed to check password", err)
 			return custom_error.NewError(http.StatusUnauthorized, "Invalid password")
 		}
 
 		// メールアドレスとパスワードが一致した場合、jwtトークンを発行する
-		tokenString, err = auth.GenerateToken(tx, &user)
+		res.JtiToken, err = auth.GenerateToken(tx, &user)
 		if err != nil {
+			logging.LogError("failed to generate token", err)
 			return err
 		}
 
@@ -46,12 +44,5 @@ func (userService *UserService) Login(user model.User) (string, error) {
 		return nil
 	})
 
-	// 結果を返す
-	// トランザクションが失敗した場合はエラーを返す
-	if err != nil {
-		return "", err
-	}
-
-	// 正常の返り値
-	return tokenString, nil
+	return
 }

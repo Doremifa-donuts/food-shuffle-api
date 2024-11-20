@@ -47,7 +47,7 @@ func routing(router *gin.Engine) *gin.Engine {
 					// すれ違いで受け取ったレビューの一覧を取得する
 					reviews.GET("/recieves", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/recieves
 
-					// アーカイブに保存されたレビューの一覧を取得する	
+					// アーカイブに保存されたレビューの一覧を取得する
 					reviews.GET("/archives", handler.GetArchivedReviewsByUserHandler) // v1/auth/users/reviews/archives
 
 					// いいねをしたレビューの一覧を取得する
@@ -60,7 +60,7 @@ func routing(router *gin.Engine) *gin.Engine {
 					reviews.GET("/posts") // v1/auth/users/reviews/posts
 
 					// レビューを投稿する	//TODO: 画像の保存より前に投稿権限があるかを確認する
-					reviews.POST("/post", handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
+					reviews.POST("/post", middleware.AllowReviewPost(),handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
 
 				}
 
