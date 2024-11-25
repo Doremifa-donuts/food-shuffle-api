@@ -85,6 +85,8 @@ func routing(router *gin.Engine) *gin.Engine {
 					// 予約の一覧を取得する
 					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
 				}
+
+				restaurants.POST("/urgentcampaign", handler.UrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
 			}
 		}
 
