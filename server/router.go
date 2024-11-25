@@ -66,6 +66,12 @@ func routing(router *gin.Engine) *gin.Engine {
 				{
 					// 予約の一覧を取得する
 					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
+
+					// 予約詳細を取得する
+					reservations.GET("/:reservation_uuid", handler.GetReservationDetailHandler) // v1/auth/restaurants/reservations/:reservation_uuid
+
+					// // 予約を承認する
+					// reservations.POST("/:reservation_uuid/approve", handler.ApproveReservationHandler) // v1/auth/restaurants/reservations/:reservation_uuid/approve
 				}
 			}
 		}

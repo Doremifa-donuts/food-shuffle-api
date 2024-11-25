@@ -38,3 +38,58 @@ func GetReservationsHandler(ctx *gin.Context) {
 	// 予約一覧を返す
 	conversion.ResponseJson(ctx, http.StatusOK, reviews)
 }
+
+// 予約を取得するハンドラー
+func GetReservationDetailHandler(ctx *gin.Context) {
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		logging.LogError("uuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+	// 予約UUIDを取得
+	reservation_uuid := ctx.Param("reservation_uuid")
+
+	// 予約を取得する
+	review, err := ReservationService.GetReservationDetailByReservation(uuid.(string), reservation_uuid)
+	if err != nil {
+		logging.LogError("get reservation failed", err)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		ctx.Abort()
+		return
+	}
+
+	// 予約を返す
+	conversion.ResponseJson(ctx, http.StatusOK, review)
+}
+
+// aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+// // 予約を承認するハンドラー
+// func ApproveReservationHandler(ctx *gin.Context) {
+// 	uuid, ok := ctx.Get("uuid")
+// 	if !ok {
+// 		logging.LogError("uuid not found", nil)
+// 		// エラーレスポンスを返す
+// 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+// 		ctx.Abort()
+// 		return
+// 	}
+// 	// 予約UUIDを取得
+// 	reservation_uuid := ctx.Param("reservation_uuid")
+
+// 	// 予約を承認する
+// 	err := ReservationService.ApproveReservation(uuid.(string), reservation_uuid)
+// 	if err != nil {
+// 		logging.LogError("approve reservation failed", err)
+// 		// エラーレスポンスを返す
+// 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+// 		ctx.Abort()
+// 		return
+// 	}
+
+// 	// 予約を返す
+// 	conversion.ResponseJson(ctx, http.StatusOK, nil)
+// }
