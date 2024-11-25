@@ -14,7 +14,7 @@ import(
 
 var UrgentCampaignService = service.UrgentCampaignService{}
 
-func UrgentCampaignHandler(ctx *gin.Context) {
+func UrgentCampaignCreateHandler(ctx *gin.Context) {
 
 	if ctx.GetHeader("Content-Type") != "application/json" {
 		logging.LogError("Content-Type is not application/json", nil)
