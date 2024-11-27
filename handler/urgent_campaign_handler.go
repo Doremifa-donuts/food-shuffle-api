@@ -14,7 +14,7 @@ import(
 
 var UrgentCampaignService = service.UrgentCampaignService{}
 
-func UrgentCampaignCreateHandler(ctx *gin.Context) {
+func CreateUrgentCampaignHandler(ctx *gin.Context) {
 
 	if ctx.GetHeader("Content-Type") != "application/json" {
 		logging.LogError("Content-Type is not application/json", nil)
@@ -46,4 +46,28 @@ func UrgentCampaignCreateHandler(ctx *gin.Context) {
 	}
 
 	conversion.ResponseJson(ctx, http.StatusOK, result)
+}
+
+func GetUrgentCampaignHandler(ctx *gin.Context) {
+
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		logging.LogError("uuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+
+	campaign, err := UrgentCampaignService.GetUrgentCampaign(uuid.(string))
+
+	if err != nil {
+		logging.LogError("get urgent campaign failed", err)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		ctx.Abort()
+		return
+	}
+
+	conversion.ResponseJson(ctx, http.StatusOK, campaign)
 }
