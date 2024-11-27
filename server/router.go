@@ -32,7 +32,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			})
 
 			// お助けブースト取得
-			auth.GET("/urgentcampaign", handler.GetUrgentCampaignHandler)
+			auth.GET("/urgentcampaign", handler.GetUrgentCampaignHandler)	// v1/auth/urgentcampaign
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
