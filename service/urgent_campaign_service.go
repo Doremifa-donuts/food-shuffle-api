@@ -12,7 +12,7 @@ import(
 
 type UrgentCampaignService struct{}
 
-func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign model.UrgentCampaign) (res dto.UrgentCampaign, err error) {
+func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign model.UrgentCampaign) (res dto.CreateUrgentCampaign, err error) {
 
 	err = repository.Transaction(func(tx *gorm.DB) error {
 		CampaignUuid, err := uuid.NewV7()
@@ -34,4 +34,34 @@ func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign mode
 	})
 
 	return
+}
+
+func (service *UrgentCampaignService) GetUrgentCampaign(uuid string) (res dto.GetUrgentCampaigns, err error) {
+    err = repository.Transaction(func(tx *gorm.DB) error {
+        // 全件ではなく、特定のUUIDに一致するキャンペーンを取得
+        urgentCampaigns, err := repository.GetUrgentCampaign(tx, uuid)
+        if err != nil {
+            logging.LogError("failed to get UrgentCampaign", err)
+            return err
+        }
+        
+        // 取得したキャンペーンの中から、指定されたUUIDと一致するものを探す
+        for _, campaign := range urgentCampaigns {
+            if campaign.CampaignUuid == uuid {
+                res = dto.GetUrgentCampaigns{
+                    CampaignUuid:    campaign.CampaignUuid,
+                    RestaurantUuid:  campaign.RestaurantUuid,
+                    StartAt:         campaign.StartAt,
+                    EndAt:           campaign.EndAt,
+                    Description:     campaign.Description,
+                    DiscountOffer:   campaign.DiscountOffer,
+                    CreatedAt:       campaign.CreatedAt,
+                }
+                break // 最初に一致したものだけを取得
+            }
+        }
+        
+        return nil
+    })
+    return
 }
