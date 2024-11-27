@@ -50,8 +50,8 @@ func CreateUrgentCampaignHandler(ctx *gin.Context) {
 
 func GetUrgentCampaignHandler(ctx *gin.Context) {
 
-	uuid, ok := ctx.Get("uuid")
-	if !ok {
+	uuid := ctx.Param("campaignUuid")
+	if uuid == "" {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
@@ -59,7 +59,7 @@ func GetUrgentCampaignHandler(ctx *gin.Context) {
 		return
 	}
 
-	campaign, err := UrgentCampaignService.GetUrgentCampaign(uuid.(string))
+	campaign, err := UrgentCampaignService.GetUrgentCampaign(uuid)
 
 	if err != nil {
 		logging.LogError("get urgent campaign failed", err)

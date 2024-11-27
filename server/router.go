@@ -32,7 +32,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			})
 
 			// お助けブースト取得
-			auth.GET("/urgentcampaign", handler.GetUrgentCampaignHandler)	// v1/auth/urgentcampaign
+			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler)	// v1/auth/urgentcampaign
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
@@ -89,7 +89,7 @@ func routing(router *gin.Engine) *gin.Engine {
 					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
 				}
 
-				restaurants.POST("/urgentcampaign", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
+				restaurants.POST("/urgentCampaign", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
 			}
 		}
 
