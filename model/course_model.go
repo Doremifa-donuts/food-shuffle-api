@@ -12,4 +12,23 @@ type Course struct {
 }
 
 // サンプルデータ
-var sampleCourses = []Course{}
+var sampleCourses = []Course{
+	{
+		CourseUuid:     "09732eaa-4883-1680-690f-a2958c0f82e7",
+		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
+		CourseName:     "コースA",
+		Description:    "コースAの説明",
+		Images:         StringArray{"https://example.com/image1.jpg", "https://example.com/image2.jpg"},
+		Price:          1000,
+		Minimum:        2,
+	},
+	{
+		CourseUuid:     "07a9c86-3939-5ad0-49e8-c2fac4aaac1f",
+		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
+		CourseName:     "コースB",
+		Description:    "コースBの説明",
+		Images:         StringArray{"https://example.com/image3.jpg", "https://example.com/image4.jpg"},
+		Price:          1500,
+		Minimum:        3,
+	},
+}
