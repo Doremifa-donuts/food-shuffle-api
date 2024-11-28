@@ -38,7 +38,7 @@ func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign mode
 
 func (service *UrgentCampaignService) GetUrgentCampaign(uuid string) (res dto.GetUrgentCampaigns, err error) {
     err = repository.Transaction(func(tx *gorm.DB) error {
-        // 全件ではなく、特定のUUIDに一致するキャンペーンを取得
+        //特定のUUIDに一致するキャンペーンを取得
         urgentCampaigns, err := repository.GetUrgentCampaign(tx, uuid)
         if err != nil {
             logging.LogError("failed to get UrgentCampaign", err)
