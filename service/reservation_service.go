@@ -134,3 +134,20 @@ func (s ReservationService) GetReservationDetailByReservation(uuid string, reser
 	// 返り値を返す
 	return reservationDetailResponse, err
 }
+
+func (s ReservationService) ApproveReservation(uuid string, reservation_uuid string) error {
+	// トランザクションを開始する
+	err := repository.Transaction(func(tx *gorm.DB) error {
+		// 予約UUIDから予約を取得する
+		reservation, err := repository.GetReservationByReservationUuid(tx, uuid, reservation_uuid)
+		if err != nil {
+			return err
+		}
+		// 予約を承認する
+		reservation.ReservationStatus = true
+		return repository.UpdateReservationStatus(tx, uuid, reservation.ReservationUuid, reservation.ReservationStatus)
+	})
+
+	// 返り値を返す
+	return err
+}

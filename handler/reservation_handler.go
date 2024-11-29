@@ -65,3 +65,28 @@ func GetReservationDetailHandler(ctx *gin.Context) {
 	// 予約を返す
 	conversion.ResponseJson(ctx, http.StatusOK, review)
 }
+
+// 予約を承認するハンドラー
+// next time, make uuid as array or slice or whatever that is
+func ApproveReservationHandler(ctx *gin.Context) {
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		logging.LogError("uuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+	// 予約UUIDを取得
+	reservation_uuid := ctx.Param("reservation_uuid")
+
+	// 予約を承認する
+	err := ReservationService.ApproveReservation(uuid.(string), reservation_uuid)
+	if err != nil {
+		logging.LogError("approve reservation failed", err)
+		ctx.Abort()
+		return
+	}
+	// 予約を返す
+	conversion.ResponseJson(ctx, http.StatusOK, nil)
+}
