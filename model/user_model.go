@@ -42,7 +42,7 @@ var sampleUsers = []User{
 		UserType:    Restaurant,
 	},
 	{
-		UserUuid:    "a80499ae-eb6c-1305-a5cc-e1510c52744a",
+		UserUuid:    "80499ae-eb6c-1305-a5cc-e1510c52744a",
 		MailAddress: "resto@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
 		Tell:        "08012341234",
