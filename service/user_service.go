@@ -46,3 +46,36 @@ func (userService *UserService) Login(bUser model.User) (res dto.LoginUser, err 
 
 	return
 }
+
+//店舗ごとのコースの一覧を取得する
+func (service *UserService) GetCourses(uuid string) (res dto.GetCourses, err error) {
+
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		//店舗UUIDに一致するコースを全件取得する
+		courses, err := repository.GetCourses(tx, uuid)
+		if err != nil {
+			logging.LogError("failed to get course", err)
+			return err
+		}
+
+		for _, course := range courses {
+			if course.RestaurantUuid == uuid {
+				res = dto.GetCourses{
+					CourseUuid: course.CourseUuid,
+					RestaurantUuid: course.RestaurantUuid,
+					CourseName: course.CourseName,
+					Discription: course.Description,
+					Images: course.Images,
+					Price: course.Price,
+					Minimum: course.Minimum,
+				}
+			}
+		}
+
+		// エラーがなければnilを返し、トランザクションをコミットさせる
+		return nil
+	})
+
+	return
+}
