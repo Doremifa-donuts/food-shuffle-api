@@ -31,4 +31,22 @@ var sampleCourses = []Course{
 		Price:          1500,
 		Minimum:        3,
 	},
+	{
+		CourseUuid:     "e5d61f9b-6c56-4009-97a2-460bdf7585e8",
+		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
+		CourseName:     "コースAA",
+		Description:    "コースAAの説明",
+		Images:         StringArray{"image5.jpg", "image6.jpg"},
+		Price:          1800,
+		Minimum:        3,
+	},
+	{
+		CourseUuid:     "dc2ebc8e-19c3-47ed-8144-8ec71319b554",
+		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
+		CourseName:     "コースAB",
+		Description:    "コースABの説明",
+		Images:         StringArray{"image7.jpg", "image8.jpg"},
+		Price:          2500,
+		Minimum:        6,
+	},
 }

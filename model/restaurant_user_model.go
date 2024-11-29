@@ -36,7 +36,7 @@ var sampleRestaurantUsers = []RestaurantUser{
 		BusyStatus:     Free,
 	},
 	{
-		RestaurantUuid: "80499ae-eb6c-1305-a5cc-e1510c52744a",
+		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
 		RestaurantName: "sample_res_name",
 		Address:        "sample_add",
 		Images:         StringArray{"sample_image3", "sample_image4", "sample_image5"},

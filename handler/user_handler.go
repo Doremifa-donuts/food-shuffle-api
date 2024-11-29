@@ -68,7 +68,7 @@ func LoginHandler(ctx *gin.Context) {
 
 func GetCoursesHandler(ctx *gin.Context) {
 
-	uuid := ctx.Param("RestaurantUuid")
+	uuid := ctx.Param("restaurantUuid")
 	if uuid == "" {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
@@ -87,21 +87,23 @@ func GetCoursesHandler(ctx *gin.Context) {
 	}
 
 	//画像があればプレフィックスを付ける
-	if len(courses.Images) > 0 {
-		// 画像のプレフィックス処理
-		prefixedImages := make([]string, len(courses.Images))
-		for i, image := range courses.Images {
-			if image == "" {
-				//画像の文字列が空、もしくは予期しないエラーが発生した場合
-				logging.LogError("image not found or unexpected error", nil)
-				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-				ctx.Abort()
-				return
-			}
+	for i := range courses {
+		if len(courses[i].Images) > 0 {
+			// 画像のプレフィックス処理
+			prefixedImages := make([]string, len(courses[i].Images))
+			for j, image := range courses[i].Images {
+				if image == "" {
+					//画像の文字列が空、もしくは予期しないエラーが発生した場合
+					logging.LogError("image not found or unexpected error", nil)
+					conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+					ctx.Abort()
+					return
+				}
 
-			prefixedImages[i] = prefix.ImagePrefixRestaurant + image
+				prefixedImages[j] = prefix.ImagePrefixRestaurant + image
+			}
+			courses[i].Images = prefixedImages
 		}
-		courses.Images = prefixedImages
 	}
 	conversion.ResponseJson(ctx, http.StatusOK, courses)
 }
