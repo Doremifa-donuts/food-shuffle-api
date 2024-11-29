@@ -100,7 +100,7 @@ func GetCoursesHandler(ctx *gin.Context) {
 					return
 				}
 
-				prefixedImages[j] = prefix.ImagePrefixRestaurant + image
+				prefixedImages[j] = prefix.ImagePrefixCourse + image
 			}
 			courses[i].Images = prefixedImages
 		}
