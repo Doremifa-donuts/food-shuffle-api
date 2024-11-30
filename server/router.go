@@ -32,7 +32,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			})
 
 			// お助けブースト取得
-			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler)	// v1/auth/urgentcampaign
+			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler) // v1/auth/urgentcampaign
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
@@ -63,13 +63,17 @@ func routing(router *gin.Engine) *gin.Engine {
 					reviews.GET("/posts") // v1/auth/users/reviews/posts
 
 					// レビューを投稿する	//TODO: 画像の保存より前に投稿権限があるかを確認する
-					reviews.POST("/post", middleware.AllowReviewPost(),handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
+					reviews.POST("/post", middleware.AllowReviewPost(), handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
 
 				}
 
 				// 一般ユーザー用のエンドポイントはこの中に追加していく
 
+				//予約登録
 				generals.POST("/reservation", handler.ReservationRegistorHandler) // v1/auth/users/reservation
+
+				// 店舗詳細取得
+				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
 			}
 
 			// レストランユーザー用のエンドポイント

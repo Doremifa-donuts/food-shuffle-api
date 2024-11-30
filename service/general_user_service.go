@@ -50,7 +50,7 @@ func (service *GeneralUserService) Register(bUser model.User, generalUser model.
 			logging.LogError("failed to hash password", err)
 			return err
 		}
-		
+
 		// ハッシュ化したパスワードに入れ替える
 		bUser.Password = hashedPassword
 
@@ -83,5 +83,36 @@ func (service *GeneralUserService) Register(bUser model.User, generalUser model.
 	})
 
 	// レスポンスを返却する
+	return
+}
+
+// レストランの詳細情報を取得する
+func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.RestaurantDetail, err error) {
+	err = repository.Transaction(func(tx *gorm.DB) error {
+
+		//特定のUUIDに一致するレストランの情報を取得
+		restaurantDetails, err := repository.GetRestaurantDetail(tx, uuid)
+		if err != nil {
+			logging.LogError("failed to get restaurant detail", err)
+			return err
+		}
+
+		//取得したレストランの情報の中から、指定されたUUIDと一致するものを探す
+		for _, restaurantDetail := range restaurantDetails {
+			if restaurantDetail.RestaurantUuid == uuid {
+				res = dto.RestaurantDetail{
+					RestaurantUuid: restaurantDetail.RestaurantUuid,
+					RestaurantName: restaurantDetail.RestaurantName,
+					Address:        restaurantDetail.Address,
+					Images:         restaurantDetail.Images,
+					Url:            restaurantDetail.Url,
+					Summary:        restaurantDetail.Summary,
+					BusinessHours:  restaurantDetail.BusinessHours,
+				}
+				break	//一致したらループを抜ける
+			}
+		}
+		return nil
+	})
 	return
 }
