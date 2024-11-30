@@ -4,7 +4,7 @@ import "time"
 
 // レビューテーブル
 type Review struct {
-	ReviewUuid              string                    `gorm:"type:char(36);primary_key;"`              // レビューのUUID
+	ReviewUuid              string                    `gorm:"type:char(36);primary_key"`               // レビューのUUID
 	UserUuid                string                    `gorm:"type:char(36);foreignKey:UserUuid"`       // レビューを投稿したユーザーのUUID
 	RestaurantUuid          string                    `gorm:"type:char(36);foreignKey:RestaurantUuid"` // レビューを投稿したレストランのUUID
 	Images                  StringArray               `gorm:"type:json;not null"`                      // レビューに関連する画像のパスをJSONで保存する
@@ -28,7 +28,7 @@ var sampleReviews = []Review{
 		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
 		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
 		Images:         StringArray{"92319be6-48e1-485a-9eaf-8c7b6af0f789", "27922620-d0b6-4fbe-b76f-35521b1cb851", "a5c7632f-a3e0-410a-9d73-75cc6646ad42"},
-		Comment:        "This review was archived by viewer. posted by poster",
+		Comment:        "This review was interested by viewer. posted by poster",
 	},
 	{
 		ReviewUuid:     "573fa1e4-1510-4eaf-9f1f-9df903bbd020",

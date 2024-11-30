@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"food-shuffle-api/handler"
 	"food-shuffle-api/middleware"
+	"food-shuffle-api/ws"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,14 +48,17 @@ func routing(router *gin.Engine) *gin.Engine {
 					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
 				})
 
+				// WSで位置情報を送信するエンドポイント
+				generals.GET("/locations", ws.LocationShareHandler) // v1/auth/users/locations
+
 				// レビュー関連
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{
 					// すれ違いで受け取ったレビューの一覧を取得する
 					reviews.GET("/recieves", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/recieves
 
-					// アーカイブに保存されたレビューの一覧を取得する
-					reviews.GET("/archives", handler.GetArchivedReviewsByUserHandler) // v1/auth/users/reviews/archives
+					// 興味ありに保存されたレビューの一覧を取得する
+					reviews.GET("/interests", handler.GetInterestedReviewsByUserHandler) // v1/auth/users/reviews/interests
 
 					// いいねをしたレビューの一覧を取得する
 					reviews.GET("/likes", handler.GetLikedReviewsByUserHandler) // v1/auth/users/reviews/likes
@@ -68,6 +72,11 @@ func routing(router *gin.Engine) *gin.Engine {
 					// レビューを投稿する	//TODO: 画像の保存より前に投稿権限があるかを確認する
 					reviews.POST("/post", middleware.AllowReviewPost(), handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
 
+					// シェアするレビューを設定する
+					reviews.PUT("/set", handler.PutReviewShareSettingHandler)	// v1/auth/users/reviews/set
+
+					// レビューステータスを更新する
+					reviews.PUT("/:review_uuid/status/:review_status", handler.PutReviewStatusByUserHandler) // v1/auth/users/reviews/:review_uuid/:review_status
 				}
 
 				// 一般ユーザー用のエンドポイントはこの中に追加していく

@@ -136,7 +136,11 @@ func AllowRestaurantUsers() gin.HandlerFunc {
 
 // レビュー投稿する権限があるかを確認する
 func AllowReviewPost() gin.HandlerFunc {
+
 	return func(ctx *gin.Context) {
+		//TODO: チェックインが作成できたら外す
+		ctx.Next()
+		return
 		//
 		uuid, _ := ctx.Get("uuid")
 

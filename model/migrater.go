@@ -76,6 +76,11 @@ func MigrateDB(db *gorm.DB) (bool, error) {
 			log.Fatalf("failed to migrate userVisitedRestaurants: %v", err)
 		}
 
+		err = db.AutoMigrate(&ShareSettingReview{})
+		if err != nil {
+			log.Fatalf("failed to migrate shareSettingReviews: %v", err)
+		}
+
 		fmt.Println("Database migrated")
 		return true, err
 	}
@@ -115,7 +120,7 @@ func InsertSampleData(db *gorm.DB) error {
 
 	err = db.Create(sampleUserReviewFlag).Error
 	if err != nil {
-		logging.LogError("Error inserting sample data for ReviewArchives", err)
+		logging.LogError("Error inserting sample data for ReviewInterests", err)
 	}
 
 	err = db.Create(samplePopupGroupSharedReviews).Error
@@ -143,6 +148,11 @@ func InsertSampleData(db *gorm.DB) error {
 		logging.LogError("Error inserting sample data for UserVisitedRestaurants", err)
 	}
 
+	err = db.Create(sampleShareSettingReview).Error
+	if err != nil {
+		logging.LogError("Error inserting sample date dor SampleShareSettingReviews", err)
+	}
+
 	return nil
 }
 
@@ -157,4 +167,8 @@ func (a *StringArray) Scan(value interface{}) error {
 // Value は driver.Valuer インターフェースを実装
 func (a StringArray) Value() (driver.Value, error) {
 	return json.Marshal(a)
+}
+
+func stringPointer(str string) *string {
+	return &str
 }

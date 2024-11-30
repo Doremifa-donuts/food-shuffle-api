@@ -6,6 +6,7 @@ import "time"
 type GetReviewsByUser struct {
 	RestaurantUuid string    // レストランUUID
 	RestaurantName string    // レストラン名
+	ReviewUuid     string    // レビューUUID
 	Comment        string    // レビューの内容
 	PostedAt       time.Time // レビューの投稿日時
 	Images         []string  // レビューの画像
@@ -15,4 +16,11 @@ type GetReviewsByUser struct {
 // レビュー投稿のレスポンス
 type PostReview struct {
 	ReviewUuid string // レビューUUID
+}
+
+// 共有するレビュー設定のレスポンス
+type ShareSettingReview struct {
+	FirstShareReviewUuid  string
+	SecondShareReviewUuid string
+	ThirdShareReviewUuid  string
 }

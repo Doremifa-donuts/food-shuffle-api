@@ -2,11 +2,13 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 
+	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
@@ -36,15 +38,15 @@ func GetReceivedReviewsByUserHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, reviews)
 }
 
-//　アーカイブに保存されたレビューの一覧を取得する
-func GetArchivedReviewsByUserHandler(ctx *gin.Context) {
+// 　興味ありに保存されたレビューの一覧を取得する
+func GetInterestedReviewsByUserHandler(ctx *gin.Context) {
 	// ユーザーIDを取得する
 	uuid, _ := ctx.Get("uuid")
 	// 型変換
 	uuidAdjusted := uuid.(string)
 
 	// レビュー一覧を取得するサービスに投げる
-	reviews, err := ReviewService.GetArchivedReviewsByUser(uuidAdjusted)
+	reviews, err := ReviewService.GetInterestedReviewsByUser(uuidAdjusted)
 	// エラーハンドリング
 	if err != nil {
 		// エラーを返す
@@ -76,6 +78,60 @@ func GetLikedReviewsByUserHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, reviews)
 }
 
+// レビューのステータスを更新する
+func PutReviewStatusByUserHandler(ctx *gin.Context) {
+	// リクエストを構造体にバインドする
+	var userReviewFlag model.UserReviewFlag
+
+	// リクエストを構造体にバインドする
+	userUuid, _ := ctx.Get("uuid")
+	userReviewFlag.UserUuid = userUuid.(string)
+	fmt.Println("userReviewFlag.UserUuid:", userReviewFlag.UserUuid)
+
+	// レビューUUIDが存在しているかを確認する
+	reqReviewUuid := ctx.Param("review_uuid")
+	if reqReviewUuid == "" {
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+	// レビューUUIDを構造体に格納する
+	userReviewFlag.ReviewUuid = reqReviewUuid
+
+	fmt.Println("userReviewFlag.ReviewUuid:", userReviewFlag.ReviewUuid)
+
+	// リクエストステータスが適切かどうかを確認する
+	reqStatus := ctx.Param("review_status")
+	switch reqStatus {
+	case "interested":
+		userReviewFlag.ReviewStatus = model.Interested
+	case "not_interested":
+		userReviewFlag.ReviewStatus = model.NotInterested
+	case "liked":
+		userReviewFlag.ReviewStatus = model.Iiked
+	default:
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// レビューのステータスを更新するサービスに投げる
+	err := ReviewService.UpdateReviewStatus(userReviewFlag)
+	// エラーハンドリング
+	if err != nil {
+		// カスタムエラーの変数を宣言する
+		var customError *custom_error.CustomError
+
+		// カスタムエラーかどうかを確認する
+		if errors.As(err, &customError) {
+			// カスタムエラーを返す
+			conversion.ResponseJson(ctx, customError.StatusCode(), nil)
+			return
+		}
+		// 分類していないエラーを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+	conversion.ResponseJson(ctx, http.StatusOK, nil)
+}
 
 // レビューを投稿する
 func PostReviewByUserHandler(ctx *gin.Context) {
@@ -139,5 +195,46 @@ func PostReviewByUserHandler(ctx *gin.Context) {
 
 	// レスポンスを返す
 	conversion.ResponseJson(ctx, http.StatusOK, reviewUuid)
+}
+
+// ユーザーがシェアするレビューを設定する
+func PutReviewShareSettingHandler(ctx *gin.Context) {
+
+	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
+	if ctx.GetHeader("Content-Type") != "application/json" {
+		logging.LogError("Content-Type is not application/json", nil)
+
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
+		return
+	}
+
+	// ユーザーUUIDを取得
+	userUuid, _ := ctx.Get("uuid")
+
+	// 構造体にバインド
+	var bShareSettingReview model.ShareSettingReview
+	err := ctx.ShouldBindJSON(&bShareSettingReview)
+	if err != nil {
+		logging.LogError("could not bind to json", nil)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	bShareSettingReview.UserUuid = userUuid.(string)
+
+	// サービスに処理を投げる
+	res, err := ReviewService.SetShareReview(bShareSettingReview)
+	if err != nil {
+		// カスタムエラーの場合のレスポンス
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他の場合のレスポンス
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+	}
+	conversion.ResponseJson(ctx, http.StatusOK, res)
 
 }

@@ -1,11 +1,14 @@
 package service
 
 import (
+	"errors"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
+	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
+	"net/http"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -24,14 +27,14 @@ func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]dto.GetReviewsB
 	return s.getReviewsByUser(reviewFlag)
 }
 
-// アーカイブに登録したレビューを取得する
-func (s *ReviewService) GetArchivedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
+// 興味ありに登録したレビューを取得する
+func (s *ReviewService) GetInterestedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
 	// ステータスを Interested に限定した構造体に変換する
 	reviewFlag := model.UserReviewFlag{
 		UserUuid:     uuid,
 		ReviewStatus: model.Interested,
 	}
-	// アーカイブ状態のレビューを取得する
+	// 興味あり状態のレビューを取得する
 	return s.getReviewsByUser(reviewFlag)
 }
 
@@ -46,7 +49,7 @@ func (s *ReviewService) GetLikedReviewsByUser(uuid string) ([]dto.GetReviewsByUs
 	return s.getReviewsByUser(reviewFlag)
 }
 
-// ユーザーのレビューを取得する　コールバックでレビューの種類を分ける
+// ユーザーのレビューを取得する
 func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res []dto.GetReviewsByUser, err error) {
 	// トランザクションを開始する
 	err = repository.Transaction(func(tx *gorm.DB) error {
@@ -98,6 +101,7 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 			res = append(res, dto.GetReviewsByUser{
 				RestaurantUuid: review.RestaurantUuid,
 				RestaurantName: restaurantName,
+				ReviewUuid:     review.ReviewUuid,
 				Comment:        review.Comment,
 				PostedAt:       review.CreatedAt,
 				Images:         review.Images,
@@ -110,6 +114,29 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 	})
 
 	// レスポンスを返却する
+	return
+}
+
+// レビューのステータスを更新する
+func (s *ReviewService) UpdateReviewStatus(bReviewFlag model.UserReviewFlag) (err error) {
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		// レビューのステータスを更新する
+		result, err := repository.UpdateReviewStatus(tx, bReviewFlag)
+		if err != nil {
+			logging.LogError("failed to update review status", err)
+			return err
+		}
+		if !result {
+			logging.LogError("failed to update review status", err)
+			return custom_error.NewError(http.StatusBadRequest, "Review not found")
+		}
+
+		// トランザクションを終了する
+		return nil
+	})
+
+	// エラーが出なかった場合はnilを返却する
 	return
 }
 
@@ -140,5 +167,55 @@ func (s *ReviewService) PostReview(bReview model.Review) (res dto.PostReview, er
 	})
 
 	// レスポンスを返却する
+	return
+}
+
+func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingReview) (res dto.ShareSettingReview, err error) {
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		// レビューUUIDが設定されているかを確認する
+		if bShareSettingReview.FirstReviewUuid == nil {
+			logging.LogError("do not set review uuid", nil)
+			return custom_error.NewError(http.StatusBadRequest, "do not set review uuid")
+		}
+		// レビューが本人のものであるかを確認する
+		err = repository.ExistReviewByUserUuidAndReviewUuid(tx, bShareSettingReview.UserUuid, *bShareSettingReview.FirstReviewUuid)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				logging.LogError("review uuid is not own", err)
+				return custom_error.NewError(http.StatusBadRequest, "review uuid is not this users")
+			}
+		}
+		// すでに設定されたものがあるかを確認する
+		_, err := repository.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
+			// レコードがない場合は新規作成
+			err = repository.CreateShareSettingReview(tx, bShareSettingReview)
+			if err != nil {
+				return err
+			}
+		} else {
+			// レコードが存在する場合は更新
+			err = repository.UpdateShareSettingReview(tx, bShareSettingReview)
+			if err != nil {
+				return err
+			}
+		}
+
+		// 作成、更新したデータを取得する
+		setReview, err := repository.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
+		if err != nil {
+			return err
+		}
+
+		// レスポンス生成
+		if setReview.FirstReview != nil {
+			res.FirstShareReviewUuid = *setReview.FirstReviewUuid
+		}
+		return nil
+	})
+
 	return
 }
