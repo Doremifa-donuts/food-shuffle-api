@@ -34,6 +34,9 @@ func routing(router *gin.Engine) *gin.Engine {
 			// お助けブースト取得
 			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler) // v1/auth/urgentcampaign
 
+			// 店舗ごとのコース一覧取得
+			auth.GET("/courses/:restaurantUuid", handler.GetCoursesHandler)	// v1/auth/courses/:restaurantUuid
+
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{

@@ -24,13 +24,25 @@ type RestaurantUser struct {
 	UserVisitedRestaurants []UserVisitedRestaurant `gorm:"foreignKey:RestaurantUuid"`
 }
 
-var sampleRestaurantUsers = RestaurantUser{
-	RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-	RestaurantName: "sample_resto_name",
-	Address:        "sample_address",
-	Images:         StringArray{"sample_image1", "sample_image2"},
-	Url:            "http://google.co.jp",
-	Summary:        "sample_summary",
-	BusinessHours:  "sample_business_hours",
-	BusyStatus:     Free,
+var sampleRestaurantUsers = []RestaurantUser{
+	{
+		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
+		RestaurantName: "sample_resto_name",
+		Address:        "sample_address",
+		Images:         StringArray{"sample_image1", "sample_image2"},
+		Url:            "http://google.co.jp",
+		Summary:        "sample_summary",
+		BusinessHours:  "sample_business_hours",
+		BusyStatus:     Free,
+	},
+	{
+		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
+		RestaurantName: "sample_res_name",
+		Address:        "sample_add",
+		Images:         StringArray{"sample_image3", "sample_image4", "sample_image5"},
+		Url:            "http://google.co.jp",
+		Summary:        "sample_summary",
+		BusinessHours:  "sample_business_hours",
+		BusyStatus:     Free,
+	},
 }
