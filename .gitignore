@@ -16,3 +16,6 @@ __debug_bin*
 .DS_Store
 Thumbs.db
 public/images/*
+
+# メモ
+2024*.md
