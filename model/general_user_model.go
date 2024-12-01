@@ -33,7 +33,7 @@ var sampleGeneralUsers = []GeneralUser{
 	{
 		UserUuid:    "91a78381-f472-496b-90e3-2c66a33391d1",
 		UserName:    "viewer",
-		ShareStatus: Silent,
+		ShareStatus: Active,
 		Icon:        "4c1e4635-1950-41e8-a561-be995a4a8816",
 	},
 }

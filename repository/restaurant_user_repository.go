@@ -15,7 +15,7 @@ func GetRestaurantNameByRestaurantUuid(db *gorm.DB, uuid string) (string, error)
 
 // 混雑状況が満席でないことを確認する
 func CheckNotPackedStatusByRestaurantUuid(db *gorm.DB, restaurantUuid string) error {
-	return db.Where("restaurant_uuid = ? and busy_status = ?", restaurantUuid, model.Packed).First(&model.RestaurantUser{}).Error
+	return db.Where("restaurant_uuid = ? and busy_status <> ?", restaurantUuid, model.Packed).First(&model.RestaurantUser{}).Error
 }
 
 // レストランの詳細情報を取得する

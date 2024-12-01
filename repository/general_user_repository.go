@@ -34,6 +34,6 @@ func GetIconByUserUuid(db *gorm.DB, userUuid string) (string, error) {
 // ユーザーUUIDのリストからステータスが通知受け取りになっている人のみに絞り込む
 func ListFilterActiveStatusByUserUuids(db *gorm.DB, userUuids []string) ([]string, error) {
 	var filteredUuids []string
-	err := db.Model(model.GeneralUser{}).Where("user_uuid in (?) and share_status = ?", userUuids, model.Active).Pluck("user_uuid", filteredUuids).Error
+	err := db.Model(model.GeneralUser{}).Where("user_uuid in (?) and share_status = ?", userUuids, model.Active).Pluck("user_uuid", &filteredUuids).Error
 	return filteredUuids, err
 }

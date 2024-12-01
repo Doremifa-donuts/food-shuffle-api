@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/redisconn"
@@ -47,7 +46,6 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			//HACK: カスタムエラーにステータスコード入れるな
 			return custom_error.NewError(0, "No reviews available for sharing")
 		}
-		fmt.Println("シェアしたいレビュー:", *shareSettingReview.FirstReviewUuid)
 
 		// レビューの共有と追加の処理を行う
 		// レビューのいいね数を取得する
@@ -57,7 +55,6 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			return err
 		}
 		shareRadius += 10 // 最小共有範囲を10mに設定する //TODO: 切り出し
-		fmt.Println("共有範囲:", shareRadius)
 
 		// 共有範囲にいる人のリストを取得する
 		withinUserUuids, err := redisconn.GetUserUuidsByReviewShareRadius(userUuid, float64(shareRadius+10))
@@ -65,7 +62,6 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			logging.LogError("colud not get share target user uuid", err)
 			return err
 		}
-		fmt.Println("共有範囲内にいる人たち:", withinUserUuids)
 
 		// 共有対象がいない場合は早期リターン
 		if len(withinUserUuids) <= 0 {
@@ -78,7 +74,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			logging.LogError("could not get revieve target user", err)
 			return err
 		}
-		fmt.Println("レビューを所持していない人のみ:", receiveUserUuids)
+
 		// 共有対象がいない場合は早期リターン
 		if len(receiveUserUuids) <= 0 {
 			return custom_error.NewError(0, "There is no one don't have review.")
@@ -95,28 +91,30 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 		return nil
 	})
 
-	// 通知について処理を行う
-	repository.Transaction(func(tx *gorm.DB) error {
-		// 店が混雑しているかを取得
-		err = repository.CheckNotPackedStatusByRestaurantUuid(tx, shareSettingReview.FirstReview.RestaurantUuid)
-		if err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				logging.LogError("colud not check restaurant is packed", err)
-				//HACK: カスタムエラーにステータスコード入れるな
-				return custom_error.NewError(0, "There is no one within the sharing range of the review.")
+	if err == nil {
+
+		// 通知について処理を行う
+		err = repository.Transaction(func(tx *gorm.DB) error {
+			// 店が混雑しているかを取得
+			err = repository.CheckNotPackedStatusByRestaurantUuid(tx, shareSettingReview.FirstReview.RestaurantUuid)
+			if err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					logging.LogError("colud not check restaurant is packed", err)
+					//HACK: カスタムエラーにステータスコード入れるな
+					return custom_error.NewError(0, "There is no one within the sharing range of the review.")
+				}
+				return err
 			}
-			return err
-		}
 
-		// 通知モードをオンにしている人のみ通知リストに格納
-		notifyUserUuids, err = repository.ListFilterActiveStatusByUserUuids(tx, receiveUserUuids)
-		if err != nil {
-			logging.LogError("colud not filter user uuid", err)
-			return err
-		}
-		// トランザクションを終了する
-		return nil
-	})
-
+			// 通知モードをオンにしている人のみ通知リストに格納
+			notifyUserUuids, err = repository.ListFilterActiveStatusByUserUuids(tx, receiveUserUuids)
+			if err != nil {
+				logging.LogError("colud not filter user uuid", err)
+				return err
+			}
+			// トランザクションを終了する
+			return nil
+		})
+	}
 	return
 }

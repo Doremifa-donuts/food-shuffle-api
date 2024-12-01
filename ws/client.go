@@ -97,26 +97,13 @@ func (c *Client) read() {
 			}
 			break
 		}
-		userUuids, err := locationShareService.NotifyReviewByLocationMessage(c.userUuid,message)
+		//
+		userUuids, err := locationShareService.NotifyReviewByLocationMessage(c.userUuid, message)
 		if err != nil {
+			logging.LogError("review share service falied", nil)
+		} else {
 			c.hub.share <- userUuids
 		}
-		// reg := "\r\n|\n"
-		// WSからデータを取得した際に決められた位置情報の形に整形する
-		// latLong := regexp.MustCompile(reg).Split(string(message), -1)
-		// latitude, _ := strconv.ParseFloat(latLong[0], 64)
-		// longitude, err := strconv.ParseFloat(latLong[1], 64)
-		// if err != nil {
-		// 	// 決められたデータ形式でない場合は接続をきる
-		// 	logging.LogError("can not parse float latlong", err)
-		// 	break
-		// }
-		// fmt.Println("lat data:", latitude, "longi data", longitude)
-		// redisconn.SetGeoLocation(c.userUuid, latitude, longitude)
-		// userUuids, err := redisconn.GetUserUuidsByReviewShareRadius(c.userUuid, 500.5)
-		// if err != nil {
-		// 	logging.LogError("redis error", err)
-		// }
 	}
 }
 

@@ -1,7 +1,5 @@
 package ws
 
-import "fmt"
-
 // クライアント管理の構造体
 type Hub struct {
 	clients    map[string]*Client
@@ -34,12 +32,10 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case shareUuids := <-h.share:
-			fmt.Println("shareUuids", shareUuids)
 			var keys []string
 			for key := range h.clients {
 				keys = append(keys, key)
 			}
-			fmt.Println("clients:", keys)
 			for _, shareUuid := range shareUuids {
 				h.clients[shareUuid].send <- []byte("新たなレビューを取得しました")
 			}
