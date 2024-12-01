@@ -24,7 +24,19 @@ func InitLogging() error {
 	}
 
 	errorLog = zap.New(zapcore.NewCore(
-		zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+		zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+			TimeKey:        "time",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder, // ログレベルを小文字で
+			EncodeTime:     zapcore.ISO8601TimeEncoder,    // 時間をISO8601形式で
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder, // 短いファイルパスと行数
+		}),
 		zapcore.Lock(errorLogFile),
 		zap.ErrorLevel, // ログのレベルをエラーに設定
 	))

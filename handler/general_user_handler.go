@@ -93,21 +93,21 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 
 	//画像があればプレフィックスを付ける
 	if len(detail.Images) > 0 {
-        // 画像のプレフィックス処理
-        prefixedImages := make([]string, len(detail.Images))
-        for i, image := range detail.Images {
-            if image == "" {
+		// 画像のプレフィックス処理
+		prefixedImages := make([]string, len(detail.Images))
+		for i, image := range detail.Images {
+			if image == "" {
 				//画像の文字列が空、もしくは予期しないエラーが発生した場合
-                logging.LogError("image not found or unexpected error", nil)
-                conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-                ctx.Abort()
-                return
-            }
-			
-            prefixedImages[i] = prefix.ImagePrefixRestaurant + image
-        }
-        detail.Images = prefixedImages
-    }
+				logging.LogError("image not found or unexpected error", nil)
+				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+				ctx.Abort()
+				return
+			}
 
-    conversion.ResponseJson(ctx, http.StatusOK, detail)
+			prefixedImages[i] = prefix.ImagePrefixRestaurant + image
+		}
+		detail.Images = prefixedImages
+	}
+
+	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }

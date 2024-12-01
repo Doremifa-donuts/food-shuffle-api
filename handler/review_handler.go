@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -135,6 +136,13 @@ func PutReviewStatusByUserHandler(ctx *gin.Context) {
 
 // レビューを投稿する
 func PostReviewByUserHandler(ctx *gin.Context) {
+
+	// multipart/form-dataであることを確認する
+	if ctx.ContentType() != "multipart/form-data" {
+		logging.LogError("invalid content type", nil)
+		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
+	}
+
 	// リクエストを構造体にバインドする
 	var review model.Review
 	// idを構造体にバインドする
@@ -143,26 +151,42 @@ func PostReviewByUserHandler(ctx *gin.Context) {
 	// uuidを構造体にバインドする
 	review.UserUuid = uuid.(string)
 
-	// リクエストを構造体にバインドする
-	err := conversion.RequestSaveImagesAndBindJSON(ctx, &review)
+	// リクエストを受け取る
+	form, err := ctx.MultipartForm()
 	if err != nil {
-		// カスタムエラーの変数を宣言する
-		var customError *custom_error.CustomError
+		logging.LogError("failed get multi part form", err)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+	}
 
-		// カスタムエラーかどうかを確認する
-		if errors.As(err, &customError) {
-			// エラーを返す
-			conversion.ResponseJson(ctx, customError.StatusCode(), nil)
-			return
-		} else { // TODO: カスタムエラー以外のエラーを分類する
-			// エラーを返す
+	// jsonを構造体にバインド
+	// jsonデータを取得
+	jsonData := form.Value["data"][0]
+	// jsonデータが空の場合はエラーを返す
+	if jsonData == "" {
+		logging.LogError("Invalid JSON data:", nil)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	} else {
+		// JSONデータを構造体にパース
+		if err := json.Unmarshal([]byte(jsonData), &review); err != nil {
+			logging.LogError("Error parsing JSON data:", err)
 			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 			return
 		}
 	}
 
+	// 画像をスライスに格納
+	images := form.File["images[]"]
+
+	if len(images) > 10 && len(images) <= 0 {
+		// 画像なし
+		logging.LogError("images[] length is too long or zero", nil)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
 	// サービス層のメソッドを呼び出す
-	reviewUuid, err := ReviewService.PostReview(review)
+	reviewUuid, err := ReviewService.PostReview(review, images)
 	if err != nil {
 
 		// カスタムエラーの変数を宣言する

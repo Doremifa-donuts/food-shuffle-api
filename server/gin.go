@@ -45,7 +45,9 @@ func InitGin() (*gin.Engine, error) {
 		},
 	}))
 
-	// gin.DefaultWriter = io.MultiWriter(AccessLogFile, os.Stdout)
+	// マルチパートフォームが利用できるメモリの制限を設定する(デフォルトは 32 MiB)
+	router.MaxMultipartMemory = 8 << 20 // 8 MiB
+
 	// 接続確認用のwebページを読み込む
 	checkConnectionRoute(router)
 

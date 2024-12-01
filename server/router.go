@@ -36,7 +36,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler) // v1/auth/urgentcampaign
 
 			// 店舗ごとのコース一覧取得
-			auth.GET("/courses/:restaurantUuid", handler.GetCoursesHandler)	// v1/auth/courses/:restaurantUuid
+			auth.GET("/courses/:restaurantUuid", handler.GetCoursesHandler) // v1/auth/courses/:restaurantUuid
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
@@ -69,11 +69,11 @@ func routing(router *gin.Engine) *gin.Engine {
 					// 自分が投稿したレビューの一覧を取得する		//TODO:
 					reviews.GET("/posts") // v1/auth/users/reviews/posts
 
-					// レビューを投稿する	//TODO: 画像の保存より前に投稿権限があるかを確認する
-					reviews.POST("/post", middleware.AllowReviewPost(), handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
+					// レビューを投稿する
+					reviews.POST("/post", handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
 
 					// シェアするレビューを設定する
-					reviews.PUT("/set", handler.PutReviewShareSettingHandler)	// v1/auth/users/reviews/set
+					reviews.PUT("/set", handler.PutReviewShareSettingHandler) // v1/auth/users/reviews/set
 
 					// レビューステータスを更新する
 					reviews.PUT("/:review_uuid/status/:review_status", handler.PutReviewStatusByUserHandler) // v1/auth/users/reviews/:review_uuid/:review_status

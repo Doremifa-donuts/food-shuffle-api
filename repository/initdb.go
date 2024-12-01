@@ -4,7 +4,6 @@ import (
 	"fmt"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
-	"io"
 	"log"
 	"os"
 	"time"
@@ -37,7 +36,7 @@ func InitDB() error {
 
 	// GORMのロガーを設定（全てのSQLクエリを出力）
 	newLogger := logger.New(
-		log.New(io.MultiWriter(gormLogFile, os.Stdout), "\r\n", log.LstdFlags), // Writerをマルチライターで設定
+		log.New(gormLogFile, "\n", log.LstdFlags), // Writerをマルチライターで設定
 		logger.Config{
 			SlowThreshold:             time.Second,
 			LogLevel:                  logger.Info,

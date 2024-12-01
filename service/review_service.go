@@ -7,7 +7,9 @@ import (
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/img"
 	"food-shuffle-api/utility/prefix"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -141,9 +143,30 @@ func (s *ReviewService) UpdateReviewStatus(bReviewFlag model.UserReviewFlag) (er
 }
 
 // ユーザーがレビューを投稿する
-func (s *ReviewService) PostReview(bReview model.Review) (res dto.PostReview, err error) {
+func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.FileHeader) (res dto.PostReview, err error) {
 	// トランザクションを開始する
 	err = repository.Transaction(func(tx *gorm.DB) error {
+
+		// その店舗に訪れたことがあるかを確認する
+		// err := repository.ExistsUserVisitedRestaurantByUserUuid(tx, bReview.UserUuid)
+		// if err != nil {
+		// 	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 		// エラーログを書き込む
+		// 		logging.LogError("Your user has not visited the restaurant.", err)
+		// 		return custom_error.NewError(http.StatusForbidden, "Your user has not visited the restaurant.")
+		// 	}
+		// }
+
+		// 画像を保存する
+		dirPath := "public/images/reviews"
+		imagesPath, err := img.SaveImages(dirPath, images)
+		if err != nil {
+			return err
+		}
+		bReview.Images = imagesPath
+
+		// TODO: トランザクション失敗した場合に保存した画像を破棄する
+
 		// レビューUUIDを生成する
 		reviewUuid, err := uuid.NewV7()
 		if err != nil {
