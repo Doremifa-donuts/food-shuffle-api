@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"food-shuffle-api/model"
 
 	"gorm.io/gorm"
@@ -36,4 +37,11 @@ func ListFilterActiveStatusByUserUuids(db *gorm.DB, userUuids []string) ([]strin
 	var filteredUuids []string
 	err := db.Model(model.GeneralUser{}).Where("user_uuid in (?) and share_status = ?", userUuids, model.Active).Pluck("user_uuid", &filteredUuids).Error
 	return filteredUuids, err
+}
+
+func PutShareStatus(db *gorm.DB, generalUser model.GeneralUser) (bool, error) {
+	result := db.Model(model.GeneralUser{}).Where("user_uuid = ?", generalUser.UserUuid).Update("share_status", generalUser.ShareStatus)
+	//更新されたレコードが一つならtrueを返す
+	fmt.Println(result.RowsAffected)
+	return result.RowsAffected == 1, result.Error
 }

@@ -86,6 +86,9 @@ func routing(router *gin.Engine) *gin.Engine {
 
 				// 店舗詳細取得
 				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
+
+				// ユーザーの通知モードの変更
+				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler)	// v1/auth/users/putShareStatus
 			}
 
 			// レストランユーザー用のエンドポイント
