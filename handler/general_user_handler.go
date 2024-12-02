@@ -123,7 +123,7 @@ func PutShareStatusHandler(ctx *gin.Context) {
 	generalUser.UserUuid = uuid.(string)
 	fmt.Println("uuid", generalUser.UserUuid)
 
-	// 変えるモードを取得
+	// 変更後のモードを取得
 	Status := ctx.Param("status")
 	switch Status {
 		case "Active":
@@ -144,7 +144,6 @@ func PutShareStatusHandler(ctx *gin.Context) {
 		var customErr *custom_error.CustomError
 		if errors.As(err, &customErr) { // カスタムエラーの場合
 			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
-			return
 		} else {
 			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		}

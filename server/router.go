@@ -109,6 +109,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				}
 
 				restaurants.POST("/urgentCampaign", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
+
+				//混雑状況の切り替え
+				restaurants.PUT("/busyStatus/:status", handler.PutBusyStatusHandler) // v1/auth/restaurants/busyStatus/:status
 			}
 		}
 
