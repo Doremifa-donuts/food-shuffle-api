@@ -20,25 +20,13 @@ var UserService = service.UserService{}
 
 // ログイン処理
 func LoginHandler(ctx *gin.Context) {
-	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
-	if ctx.GetHeader("Content-Type") != "application/json" {
-		err := custom_error.NewError(http.StatusBadRequest, "Content-Type is not application/json")
-		logging.LogError("Content-Type is not application/json", err)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
-		return
-	}
 
 	// 取得したパラメータを格納する構造体を宣言
 	var user model.User
-	// リクエストボディを構造体にバインドする
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		// エラーログを書き込む
-		logging.LogError("Error binding JSON:", err)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+	customErr := conversion.BindJSON(ctx, &user)
+	if customErr != nil {
+		logging.LogError("failed bind json", customErr)
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 		return
 	}
 
@@ -51,7 +39,6 @@ func LoginHandler(ctx *gin.Context) {
 		// カスタムエラーにキャスト可能か確認する
 		// カスタムエラーの変数を宣言
 		var customErr *custom_error.CustomError
-
 		if errors.As(err, &customErr) {
 			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 			return
@@ -63,7 +50,6 @@ func LoginHandler(ctx *gin.Context) {
 
 	// 正常に終了した場合のレスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, result) // レスポンスにトークンを返す(tokenString)
-
 }
 
 func GetCoursesHandler(ctx *gin.Context) {

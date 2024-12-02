@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	logging "food-shuffle-api/log"
@@ -21,31 +20,15 @@ var GeneralUserService = service.GeneralUserService{}
 
 // 一般ユーザーのアカウントを作成する
 func GeneralUserRegisterHandler(ctx *gin.Context) {
-	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
-	if ctx.GetHeader("Content-Type") != "application/json" {
-		logging.LogError("Content-Type is not application/json", nil)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
-		return
-	}
-
 	// リクエストをバインドする
 	var user model.User
-	if err := ctx.ShouldBindBodyWithJSON(&user); err != nil {
-		// リクエストのバインドに失敗した場合は、400レスポンスを返す
-		logging.LogError("Error binding JSON user:", err)
-		fmt.Println(err.Error())
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		return
-	}
-
 	// 一般ユーザーの追加テーブルにもバインドする
 	var generalUser model.GeneralUser
-	if err := ctx.ShouldBindBodyWithJSON(&generalUser); err != nil {
-		// リクエストのバインドに失敗した場合は、400レスポンスを返す
-		logging.LogError("Error binding JSON general user:", err)
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+
+	customErr := conversion.BindJSON(ctx, &user, &generalUser)
+	if customErr != nil {
+		logging.LogError("failed bind json", customErr)
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 		return
 	}
 
@@ -64,7 +47,6 @@ func GeneralUserRegisterHandler(ctx *gin.Context) {
 			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 			return
 		}
-
 	}
 
 	// 成功レスポンス
