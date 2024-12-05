@@ -109,7 +109,36 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 					Summary:        restaurantDetail.Summary,
 					BusinessHours:  restaurantDetail.BusinessHours,
 				}
-				break	//一致したらループを抜ける
+				break //一致したらループを抜ける
+			}
+		}
+		return nil
+	})
+	return
+}
+
+func (service *GeneralUserService) GetReviewDetail(RestaurantUuid string, userUuid string) (res dto.ReviewDetail, err error) {
+	err = repository.Transaction(func(tx *gorm.DB) error {
+
+		//特定のUUIDに一致するレストランの情報を取得
+		reviewDetails, err := repository.GetReviewDetail(tx, RestaurantUuid, userUuid)
+		if err != nil {
+			logging.LogError("failed to get review detail", err)
+			return err
+		}
+
+		//取得したレストランの情報の中から、指定されたUUIDと一致するものを探す
+		for _, reviewDetail := range reviewDetails {
+			if reviewDetail.RestaurantUuid == RestaurantUuid {
+				res = dto.ReviewDetail{
+					ReviewUuid:     reviewDetail.ReviewUuid,
+					UserUuid:       reviewDetail.UserUuid,
+					RestaurantUuid: reviewDetail.RestaurantUuid,
+					Images:         reviewDetail.Images,
+					CreatedAt:      reviewDetail.CreatedAt,
+					Comment:        reviewDetail.Comment,
+				}
+				break //一致したらループを抜ける
 			}
 		}
 		return nil

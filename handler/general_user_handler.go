@@ -93,3 +93,51 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }
+
+func GetReviewDetailHandler(ctx *gin.Context) {
+	restaurantUuid := ctx.Param("RestaurantUuid")
+	if restaurantUuid == "" {
+		logging.LogError("RestaurantUuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+
+	userUuid, _ := ctx.Get("uuid")
+	if userUuid == nil {
+		logging.LogError("UserUuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+
+	detail, err := GeneralUserService.GetReviewDetail(restaurantUuid, userUuid.(string))
+	if err != nil {
+		logging.LogError("get review detail failed", err)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		ctx.Abort()
+		return
+	}
+
+	if len(detail.Images) > 0 {
+		// 画像のプレフィックス処理
+		prefixedImages := make([]string, len(detail.Images))
+		for i, image := range detail.Images {
+			if image == "" {
+				//画像の文字列が空、もしくは予期しないエラーが発生した場合
+				logging.LogError("image not found or unexpected error", nil)
+				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+				ctx.Abort()
+				return
+			}
+
+			prefixedImages[i] = prefix.ImagePrefixReview + image
+		}
+		detail.Images = prefixedImages
+	}
+
+	conversion.ResponseJson(ctx, http.StatusOK, detail)
+}
