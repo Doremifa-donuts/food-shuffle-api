@@ -116,3 +116,22 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 	})
 	return
 }
+
+func (s *GeneralUserService) PutShareStatus(generalUser model.GeneralUser) (err error) {
+
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		result, err := repository.PutShareStatus(tx, generalUser)
+		if err != nil {
+			logging.LogError("failed to put share status", err)
+			return err
+		}
+		if !result {
+			logging.LogError("failed to put share status", err)
+			return custom_error.NewError(http.StatusBadRequest, "General user not found")
+		}
+
+		// トランザクションを終了する
+		return nil
+	})
+	return
+}

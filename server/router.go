@@ -86,6 +86,9 @@ func routing(router *gin.Engine) *gin.Engine {
 
 				// 店舗詳細取得
 				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
+
+				// ユーザーの通知モードの変更
+				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler)	// v1/auth/users/putShareStatus
 			}
 
 			// レストランユーザー用のエンドポイント
@@ -106,6 +109,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				}
 
 				restaurants.POST("/urgentCampaign", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
+
+				//混雑状況の切り替え
+				restaurants.PUT("/busyStatus/:status", handler.PutBusyStatusHandler) // v1/auth/restaurants/busyStatus/:status
 			}
 		}
 

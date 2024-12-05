@@ -53,6 +53,7 @@ func GeneralUserRegisterHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, result)
 }
 
+// レストランの詳細情報を取得
 func GetRestaurantDetailHandler(ctx *gin.Context) {
 	uuid := ctx.Param("restaurantUuid")
 	if uuid == "" {
@@ -92,4 +93,44 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 	}
 
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
+}
+
+//ユーザーの通知モードを変更
+func PutShareStatusHandler(ctx *gin.Context) {
+	//リクエストを構造体にバインド
+	var generalUser model.GeneralUser
+
+	//ユーザーIDを取得する
+	uuid, _ := ctx.Get("uuid")
+	generalUser.UserUuid = uuid.(string)
+	fmt.Println("uuid", generalUser.UserUuid)
+
+	// 変更後のモードを取得
+	Status := ctx.Param("status")
+	switch Status {
+		case "Active":
+			generalUser.ShareStatus = model.Active
+		case "Silent":
+			generalUser.ShareStatus = model.Silent
+		case "Disabled":
+			generalUser.ShareStatus = model.Disabled
+		default:
+			logging.LogError("status not found", nil)
+			// エラーレスポンスを返す
+			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+			return
+	}
+
+	err := GeneralUserService.PutShareStatus(generalUser)
+	if err != nil {
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) { // カスタムエラーの場合
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+		} else {
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		}
+		return
+	}
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, nil)
 }

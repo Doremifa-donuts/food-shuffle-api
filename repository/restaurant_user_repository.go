@@ -24,3 +24,8 @@ func GetRestaurantDetail(db *gorm.DB, RestaurantUuid string) ([]model.Restaurant
 	err := db.Where("restaurant_uuid = ?", RestaurantUuid).Find(&restaurantUser).Error
 	return restaurantUser, err
 }
+
+func PutBusyStatus(db *gorm.DB, restaurantUser model.RestaurantUser) (bool, error) {
+	result := db.Model(&model.RestaurantUser{}).Where("restaurant_uuid = ?", restaurantUser.RestaurantUuid).Update("busy_status", restaurantUser.BusyStatus)
+	return result.RowsAffected == 1, result.Error
+}
