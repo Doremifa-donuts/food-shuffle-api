@@ -90,6 +90,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				// 店舗詳細取得
 				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
 
+				// レビューの詳細を取得する
+				generals.GET("/reviewDetail/:RestaurantUuid", handler.GetReviewDetailHandler) // v1/auth/users/reviewDetail
+
 				// 行った店のレビュー取得(レビューしたかしてないかで切り替え)
 				generals.GET("/isReviewedRestaurants/:isReviewed", handler.GetIsReviewedRestaurantsHandler) // v1/auth/users/visitedRestaurants
 

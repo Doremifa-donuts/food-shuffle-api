@@ -31,3 +31,9 @@ func UpdateReviewStatus(db *gorm.DB, reviewFlag model.UserReviewFlag) (bool, err
 func ExistsReviewByUserUuidAndReviewUuid(db *gorm.DB, userUuid string, reviewUuid string) error {
 	return db.Where("user_uuid = ? and review_uuid = ?", userUuid, reviewUuid).First(&model.Review{}).Error
 }
+
+func GetReviewDetail(db *gorm.DB, RestaurantUuid string, userUuid string) ([]model.Review, error) {
+	var reviewDetails []model.Review
+	err := db.Where("restaurant_uuid = ? and user_uuid = ?", RestaurantUuid, userUuid).Find(&reviewDetails).Error
+	return reviewDetails, err
+}

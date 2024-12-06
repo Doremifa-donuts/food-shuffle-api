@@ -24,3 +24,12 @@ type ShareSettingReview struct {
 	SecondShareReviewUuid string
 	ThirdShareReviewUuid  string
 }
+
+type ReviewDetail struct {
+	ReviewUuid              string
+	UserUuid                string
+	RestaurantUuid          string
+	Images                  []string
+	CreatedAt               time.Time
+	Comment                 string
+}
