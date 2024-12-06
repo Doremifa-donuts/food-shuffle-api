@@ -173,3 +173,39 @@ func PutShareStatusHandler(ctx *gin.Context) {
 	// 成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, nil)
 }
+
+func GetIsReviewedRestaurantsHandler(ctx *gin.Context) {
+
+	isReviewed := ctx.Param("isReviewed")
+	uuid, _ := ctx.Get("uuid")
+	uuidAdjusted := uuid.(string)
+
+	switch isReviewed {
+	case "true":
+		restaurants, err := GeneralUserService.GetIsReviewedRestaurants(true, uuidAdjusted)
+		if err != nil {
+			logging.LogError("get reviewed restaurants failed", err)
+			// エラーレスポンスを返す
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			ctx.Abort()
+			return
+		}
+		conversion.ResponseJson(ctx, http.StatusOK, restaurants)
+	case "false":
+		restaurants, err := GeneralUserService.GetIsReviewedRestaurants(false, uuidAdjusted)
+		if err != nil {
+			logging.LogError("get not reviewed restaurants failed", err)
+			// エラーレスポンスを返す
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			ctx.Abort()
+			return
+		}
+		conversion.ResponseJson(ctx, http.StatusOK, restaurants)
+	default:
+		logging.LogError("isReviewed not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+}

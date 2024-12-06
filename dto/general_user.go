@@ -11,6 +11,17 @@ type RestaurantDetail struct {
 	BusinessHours  string
 }
 
+type VisitedRestaurants struct {
+	RestaurantUuid string
+	RestaurantName string
+	Address        string
+	Images         []string
+	Url            string
+	Summary        string
+	BusinessHours  string
+}
+
+
 // 位置情報のリクエスト
 type CheckInLocation struct {
 	Location struct {

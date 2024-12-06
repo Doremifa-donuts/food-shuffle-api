@@ -203,3 +203,30 @@ func (s *GeneralUserService) PutShareStatus(generalUser model.GeneralUser) (err 
 	})
 	return
 }
+
+func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, uuid string) ([]dto.VisitedRestaurants, error) {
+	var isReviewedRestaurants []dto.VisitedRestaurants
+
+	//トランザクションを開始する
+	err := repository.Transaction(func(tx *gorm.DB) error {
+		restaurants, err := repository.GetIsReviewedRestaurants(tx, isReviewed, uuid)
+		if err != nil {
+			logging.LogError("failed to get visited restaurants", err)
+			return err
+		}
+		for _, isReviewedRestaurant := range restaurants {
+			images := []string(isReviewedRestaurant.Images)
+			isReviewedRestaurants = append(isReviewedRestaurants, dto.VisitedRestaurants{
+				RestaurantUuid: isReviewedRestaurant.RestaurantUuid,
+				RestaurantName: isReviewedRestaurant.RestaurantName,
+				Address:        isReviewedRestaurant.Address,
+				Images:         images,
+				Url:            isReviewedRestaurant.Url,
+				Summary:        isReviewedRestaurant.Summary,
+				BusinessHours:  isReviewedRestaurant.BusinessHours,
+			})
+		}
+		return nil
+	})
+	return isReviewedRestaurants, err
+}

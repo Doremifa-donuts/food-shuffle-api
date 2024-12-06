@@ -90,6 +90,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				// 店舗詳細取得
 				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
 
+				// 行った店のレビュー取得(レビューしたかしてないかで切り替え)
+				generals.GET("/isReviewedRestaurants/:isReviewed", handler.GetIsReviewedRestaurantsHandler) // v1/auth/users/visitedRestaurants
+
 				// ユーザーの通知モードの変更
 				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler)	// v1/auth/users/putShareStatus
 			}
