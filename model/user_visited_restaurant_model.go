@@ -9,6 +9,7 @@ type UserVisitedRestaurant struct {
 	UserUuid       string    `gorm:"type:char(36);primary_key"`
 	RestaurantUuid string    `gorm:"type:char(36);primary_key"`
 	CreatedAt      time.Time `gorm:"not null"`
+	UpdatedAt      time.Time `gorm:"not null"`
 }
 
 // サンプルデータ

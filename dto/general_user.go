@@ -1,6 +1,6 @@
 package dto
 
-//レストランの詳細情報を取得したときのレスポンス
+// レストランの詳細情報を取得したときのレスポンス
 type RestaurantDetail struct {
 	RestaurantUuid string
 	RestaurantName string
@@ -9,4 +9,12 @@ type RestaurantDetail struct {
 	Url            string
 	Summary        string
 	BusinessHours  string
+}
+
+// 位置情報のリクエスト
+type CheckInLocation struct {
+	Location struct {
+		Latitude  float64 `binding:"required"`
+		Longitude float64 `binding:"required"`
+	}
 }

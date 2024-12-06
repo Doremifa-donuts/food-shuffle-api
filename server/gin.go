@@ -19,7 +19,7 @@ func InitGin() (*gin.Engine, error) {
 	}
 
 	// ginのインスタンスを作成
-	router := gin.New()
+	engine := gin.New()
 
 	// ginのログの書き込み先であるaccess.logを開く
 	AccessLogFile, err := os.OpenFile("log/access.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -29,7 +29,7 @@ func InitGin() (*gin.Engine, error) {
 		return nil, err
 	}
 
-	router.Use(gin.Recovery(), gin.LoggerWithConfig(gin.LoggerConfig{
+	engine.Use(gin.Recovery(), gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/metrics"},
 		Output:    io.MultiWriter(AccessLogFile, os.Stdout),
 		Formatter: func(param gin.LogFormatterParams) string {
@@ -46,12 +46,13 @@ func InitGin() (*gin.Engine, error) {
 	}))
 
 	// マルチパートフォームが利用できるメモリの制限を設定する(デフォルトは 32 MiB)
-	router.MaxMultipartMemory = 8 << 20 // 8 MiB
+	engine.MaxMultipartMemory = 8 << 20 // 8 MiB
 
 	// 接続確認用のwebページを読み込む
-	checkConnectionRoute(router)
+	checkConnectionRoute(engine)
 
 	// APIサーバのルーティングを読み込む
-	routing(router)
-	return router, nil
+	routing(engine)
+	
+	return engine, nil
 }

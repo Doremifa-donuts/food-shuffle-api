@@ -19,9 +19,9 @@ func CheckNotPackedStatusByRestaurantUuid(db *gorm.DB, restaurantUuid string) er
 }
 
 // レストランの詳細情報を取得する
-func GetRestaurantDetail(db *gorm.DB, RestaurantUuid string) ([]model.RestaurantUser, error) {
-	var restaurantUser []model.RestaurantUser
-	err := db.Where("restaurant_uuid = ?", RestaurantUuid).Find(&restaurantUser).Error
+func GetRestaurantDetail(db *gorm.DB, RestaurantUuid string) (model.RestaurantUser, error) {
+	var restaurantUser model.RestaurantUser
+	err := db.Where("restaurant_uuid = ?", RestaurantUuid).First(&restaurantUser).Error
 	return restaurantUser, err
 }
 

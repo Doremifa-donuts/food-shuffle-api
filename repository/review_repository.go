@@ -28,6 +28,6 @@ func UpdateReviewStatus(db *gorm.DB, reviewFlag model.UserReviewFlag) (bool, err
 }
 
 // ユーザーUUIDをレビューUUIDの組み合わせが存在するかを確認する
-func ExistReviewByUserUuidAndReviewUuid(db *gorm.DB, userUuid string, reviewUuid string) error {
+func ExistsReviewByUserUuidAndReviewUuid(db *gorm.DB, userUuid string, reviewUuid string) error {
 	return db.Where("user_uuid = ? and review_uuid = ?", userUuid, reviewUuid).First(&model.Review{}).Error
 }

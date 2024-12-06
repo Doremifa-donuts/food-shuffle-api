@@ -148,14 +148,22 @@ func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.Fil
 	err = repository.Transaction(func(tx *gorm.DB) error {
 
 		// その店舗に訪れたことがあるかを確認する
-		// err := repository.ExistsUserVisitedRestaurantByUserUuid(tx, bReview.UserUuid)
-		// if err != nil {
-		// 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// 		// エラーログを書き込む
-		// 		logging.LogError("Your user has not visited the restaurant.", err)
-		// 		return custom_error.NewError(http.StatusForbidden, "Your user has not visited the restaurant.")
-		// 	}
-		// }
+		// チェックインを記録する構造体
+		userVisited := model.UserVisitedRestaurant{
+			UserUuid:       bReview.UserUuid,
+			RestaurantUuid: bReview.RestaurantUuid,
+		}
+
+		ok, err := repository.ExistsUserVisitedRestaurant(tx, userVisited)
+		if err != nil {
+			logging.LogError("failed query exists user visited restaurant table", err)
+			return err
+		}
+		if !ok {
+			// エラーログを書き込む
+			logging.LogError("Your user has not visited the restaurant.", err)
+			return custom_error.NewError(http.StatusForbidden, "Your user has not visited the restaurant.")
+		}
 
 		// 画像を保存する
 		dirPath := "public/images/reviews"
@@ -202,7 +210,7 @@ func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingRev
 			return custom_error.NewError(http.StatusBadRequest, "do not set review uuid")
 		}
 		// レビューが本人のものであるかを確認する
-		err = repository.ExistReviewByUserUuidAndReviewUuid(tx, bShareSettingReview.UserUuid, *bShareSettingReview.FirstReviewUuid)
+		err = repository.ExistsReviewByUserUuidAndReviewUuid(tx, bShareSettingReview.UserUuid, *bShareSettingReview.FirstReviewUuid)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				logging.LogError("review uuid is not own", err)

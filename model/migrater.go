@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 	logging "food-shuffle-api/log"
 	"log"
 
@@ -81,7 +80,6 @@ func MigrateDB(db *gorm.DB) (bool, error) {
 			log.Fatalf("failed to migrate shareSettingReviews: %v", err)
 		}
 
-		fmt.Println("Database migrated")
 		return true, err
 	}
 }

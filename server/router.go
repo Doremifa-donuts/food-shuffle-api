@@ -51,6 +51,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				// WSで位置情報を送信するエンドポイント
 				generals.GET("/locations", ws.LocationShareHandler) // v1/auth/users/locations
 
+				// 店舗へのチェックインを行うエンドポイント
+				generals.POST("/checkIn/:restaurant_uuid", handler.PostCheckInRestaurantHandler)
+
 				// レビュー関連
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{

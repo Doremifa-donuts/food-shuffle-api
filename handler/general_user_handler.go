@@ -2,8 +2,10 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
+	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/utility/conversion"
@@ -95,7 +97,44 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }
 
-//ユーザーの通知モードを変更
+// 店舗へのチェックインを行う
+func PostCheckInRestaurantHandler(ctx *gin.Context) {
+	// ユーザーUUIDを取得
+	userUuid, _ := ctx.Get("uuid")
+
+	// パスパラメータから店舗UUIDを取得
+	restaurantUuid, ok := ctx.Params.Get("restaurant_uuid")
+	if !ok {
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// 位置情報を取得
+	var latlong dto.CheckInLocation
+	customErr := conversion.BindJSON(ctx, &latlong)
+	if customErr != nil {
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+		return
+	}
+
+	// サービス層に処理を投げる
+	err := GeneralUserService.PostCheckInRestaurant(userUuid.(string), restaurantUuid, latlong)
+	if err != nil {
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// 切り分けできてないエラー
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, nil)
+}
+
+// ユーザーの通知モードを変更
 func PutShareStatusHandler(ctx *gin.Context) {
 	//リクエストを構造体にバインド
 	var generalUser model.GeneralUser
@@ -108,17 +147,17 @@ func PutShareStatusHandler(ctx *gin.Context) {
 	// 変更後のモードを取得
 	Status := ctx.Param("status")
 	switch Status {
-		case "Active":
-			generalUser.ShareStatus = model.Active
-		case "Silent":
-			generalUser.ShareStatus = model.Silent
-		case "Disabled":
-			generalUser.ShareStatus = model.Disabled
-		default:
-			logging.LogError("status not found", nil)
-			// エラーレスポンスを返す
-			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-			return
+	case "Active":
+		generalUser.ShareStatus = model.Active
+	case "Silent":
+		generalUser.ShareStatus = model.Silent
+	case "Disabled":
+		generalUser.ShareStatus = model.Disabled
+	default:
+		logging.LogError("status not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
 	}
 
 	err := GeneralUserService.PutShareStatus(generalUser)

@@ -37,7 +37,7 @@ func main() {
 	ws.InitWebsocket()
 
 	// ginを初期化する
-	router, err := server.InitGin()
+	engine, err := server.InitGin()
 	if err != nil {
 		fmt.Println("Error initializing gin", err)
 	} else {
@@ -45,6 +45,6 @@ func main() {
 		goPort := os.Getenv("GO_PORT")
 
 		// サーバーを起動する
-		router.Run(":" + goPort)
+		engine.Run(":" + goPort)
 	}
 }
