@@ -47,3 +47,10 @@ func ExistsUserByUserUuidAndUserType(db *gorm.DB, userUuid string, userType mode
 	}
 	return nil
 }
+
+// レストランUUIDから電話番号を取得する
+func GetTellByRestaurantUuid(db *gorm.DB, restaurantUuid string) (string, error) {
+	var tell string
+	err := db.Model(&model.User{}).Where("user_uuid", restaurantUuid).Pluck("tell", &tell).Error
+	return tell, err
+}

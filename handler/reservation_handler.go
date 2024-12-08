@@ -16,24 +16,22 @@ import (
 
 var ReservationService = service.ReservationService{}
 
-func ReservationRegistorHandler(ctx *gin.Context) {
-	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
-	if ctx.GetHeader("Content-Type") != "application/json" {
-		logging.LogError("Content-Type is not application/json", nil)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
-		return
-	}
+func ReservationRegisterHandler(ctx *gin.Context) {
 
 	// リクエストをバインドする
 	var reservation model.Reservation
-	if err := ctx.ShouldBindJSON(&reservation); err != nil {
-		// エラーログを書き込む
-		logging.LogError("Error binding JSON:", err)
+	customErr := conversion.BindJSON(ctx, &reservation)
+	if customErr != nil {
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+		return
+	}
+	// パスパラメータに含まれるrestaurant uuidを取得
+	restaurantUuid := ctx.Param("restaurant_uuid")
+	if restaurantUuid == "" {
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		return
 	}
+	reservation.RestaurantUuid = restaurantUuid
 
 	// ミドルウェアが解析したuuidを構造体に格納
 	uuid, _ := ctx.Get("uuid")

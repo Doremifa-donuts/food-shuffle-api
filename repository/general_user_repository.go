@@ -39,21 +39,22 @@ func ListFilterActiveStatusByUserUuids(db *gorm.DB, userUuids []string) ([]strin
 	return filteredUuids, err
 }
 
-// ユーザーが訪れたレストランを取得する(isReviewedの値によって分岐)
-func GetIsReviewedRestaurants(db *gorm.DB, isReviewed bool, userUuid string) ([]model.RestaurantUser, error) {
-	var visitedRestaurants []model.RestaurantUser
+// // ユーザーが訪れたレストランを取得する(isReviewedの値によって分岐)
+// func GetIsReviewedRestaurants(db *gorm.DB, isReviewed bool, userUuid string) ([]model.RestaurantUser, error) {
+// 	var visitedRestaurants []model.RestaurantUser
 
-	query := db.Model(model.RestaurantUser{}).Joins("JOIN user_visited_restaurants ON restaurant_users.restaurant_uuid = user_visited_restaurants.restaurant_uuid").Where("user_visited_restaurants.user_uuid = ?", userUuid)
+// 	query := db.Model(model.RestaurantUser{}).Joins("JOIN user_visited_restaurants ON restaurant_users.restaurant_uuid = user_visited_restaurants.restaurant_uuid").Where("user_visited_restaurants.user_uuid = ?", userUuid)
 
-	if isReviewed { // ユーザーがレビューした店舗を取得
-		query = query.Joins("JOIN reviews ON restaurant_users.restaurant_uuid = reviews.restaurant_uuid AND reviews.user_uuid = ?", userUuid)
-	} else { // ユーザーがレビューしていない店舗を取得
-		query = query.Joins("LEFT JOIN reviews ON restaurant_users.restaurant_uuid = reviews.restaurant_uuid AND reviews.user_uuid = ?", userUuid).Where("reviews.restaurant_uuid IS NULL")
-	}
-	err := query.Distinct().Find(&visitedRestaurants).Error
-	fmt.Printf("Visited Restaurants Count: %d\n", len(visitedRestaurants))
-	return visitedRestaurants, err
-}
+// 	if isReviewed { // ユーザーがレビューした店舗を取得
+// 		query = query.Joins("JOIN reviews ON restaurant_users.restaurant_uuid = reviews.restaurant_uuid AND reviews.user_uuid = ?", userUuid)
+// 	} else { // ユーザーがレビューしていない店舗を取得
+// 		query = query.Joins("LEFT JOIN reviews ON restaurant_users.restaurant_uuid = reviews.restaurant_uuid AND reviews.user_uuid = ?", userUuid).Where("reviews.restaurant_uuid IS NULL")
+// 	}
+// 	err := query.Distinct().Find(&visitedRestaurants).Error
+// 	fmt.Printf("Visited Restaurants Count: %d\n", len(visitedRestaurants))
+// 	return visitedRestaurants, err
+// }
+
 func PutShareStatus(db *gorm.DB, generalUser model.GeneralUser) (bool, error) {
 	result := db.Model(model.GeneralUser{}).Where("user_uuid = ?", generalUser.UserUuid).Update("share_status", generalUser.ShareStatus)
 	//更新されたレコードが一つならtrueを返す

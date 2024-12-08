@@ -25,6 +25,14 @@ func GetRestaurantDetail(db *gorm.DB, RestaurantUuid string) (model.RestaurantUs
 	return restaurantUser, err
 }
 
+// レストランUUIDのリストから商法を取得する
+func ListRestaurantByRestaurantUuids(db *gorm.DB, restaurantUuids []string) ([]model.RestaurantUser, error) {
+	var restaurants []model.RestaurantUser
+	err := db.Where("restaurant_uuid in (?)", restaurantUuids).Find(&restaurants).Error
+	return restaurants, err
+}
+
+// 混雑状況のステータスを更新する
 func PutBusyStatus(db *gorm.DB, restaurantUser model.RestaurantUser) (bool, error) {
 	result := db.Model(&model.RestaurantUser{}).Where("restaurant_uuid = ?", restaurantUser.RestaurantUuid).Update("busy_status", restaurantUser.BusyStatus)
 	return result.RowsAffected == 1, result.Error

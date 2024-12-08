@@ -41,12 +41,6 @@ func routing(router *gin.Engine) *gin.Engine {
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{
-				// 一般ユーザーの認証をテストするエンドポイント
-				generals.GET("/test", func(ctx *gin.Context) { // v1/auth/users/test
-					fmt.Println("test")
-					fmt.Println(ctx.Get("uuid"))
-					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
-				})
 
 				// WSで位置情報を送信するエンドポイント
 				generals.GET("/locations", ws.LocationShareHandler) // v1/auth/users/locations
@@ -82,22 +76,30 @@ func routing(router *gin.Engine) *gin.Engine {
 					reviews.PUT("/:review_uuid/status/:review_status", handler.PutReviewStatusByUserHandler) // v1/auth/users/reviews/:review_uuid/:review_status
 				}
 
-				// 一般ユーザー用のエンドポイントはこの中に追加していく
+				// ユーザーがレストランに付随する情報を操作するグループ
+				restaurants := generals.Group("/restaurants")
+				{
+					// 行った店の店舗情報一覧取得
+					restaurants.GET("/visited", handler.GetReviewedRestaurantsHandler) // v1/auth/users/visitedRestaurants
+					restaurants.GET("/reviewed", handler.GetVisitedRestaurantsHandler)
 
-				//予約登録
-				generals.POST("/reservation", handler.ReservationRegistorHandler) // v1/auth/users/reservation
+					// 1つの店舗に対する情報を取得するグループ
+					info := restaurants.Group("/:restaurant_uuid")
+					{
+						// 店舗詳細取得
+						info.GET("/", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
 
-				// 店舗詳細取得
-				generals.GET("/restaurantDetail/:restaurantUuid", handler.GetRestaurantDetailHandler) // v1/auth/users/restaurantDetail
+						//予約登録
+						info.POST("/reservations", handler.ReservationRegisterHandler) // v1/auth/users/restaurants/:restaurant_uuid/reservations
 
-				// レビューの詳細を取得する
-				generals.GET("/reviewDetail/:RestaurantUuid", handler.GetReviewDetailHandler) // v1/auth/users/reviewDetail
+						// レビューの詳細を取得する
+						info.GET("/reviews", handler.GetPostedReviewHandler) // v1/auth/users/restaurants/:restaurant_uuid/reviews
+					}
 
-				// 行った店のレビュー取得(レビューしたかしてないかで切り替え)
-				generals.GET("/isReviewedRestaurants/:isReviewed", handler.GetIsReviewedRestaurantsHandler) // v1/auth/users/visitedRestaurants
+				}
 
 				// ユーザーの通知モードの変更
-				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler)	// v1/auth/users/putShareStatus
+				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler) // v1/auth/users/putShareStatus
 			}
 
 			// レストランユーザー用のエンドポイント

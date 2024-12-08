@@ -32,8 +32,16 @@ func ExistsReviewByUserUuidAndReviewUuid(db *gorm.DB, userUuid string, reviewUui
 	return db.Where("user_uuid = ? and review_uuid = ?", userUuid, reviewUuid).First(&model.Review{}).Error
 }
 
-func GetReviewDetail(db *gorm.DB, RestaurantUuid string, userUuid string) ([]model.Review, error) {
-	var reviewDetails []model.Review
-	err := db.Where("restaurant_uuid = ? and user_uuid = ?", RestaurantUuid, userUuid).Find(&reviewDetails).Error
-	return reviewDetails, err
+// ユーザーIDとレストランUUIDが一致するレビューを取得する
+func GetReviewDetail(db *gorm.DB, restaurantUuid string, userUuid string) (model.Review, error) {
+	var reviewDetail model.Review
+	err := db.Where("restaurant_uuid = ? and user_uuid = ?", restaurantUuid, userUuid).First(&reviewDetail).Error
+	return reviewDetail, err
+}
+
+// ユーザーUUIDからレビュー対象のレストランUUIDを取得する
+func ListRestaurantUuidsByUserUuidFromReview(db *gorm.DB, userUuid string) ([]string, error) {
+	var restaurantUuids []string
+	err := db.Model(&model.Review{}).Where("user_uuid = ?", userUuid).Pluck("restaurant_uuid", &restaurantUuids).Error
+	return restaurantUuids, err
 }

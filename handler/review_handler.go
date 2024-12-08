@@ -262,3 +262,41 @@ func PutReviewShareSettingHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 
 }
+
+func GetPostedReviewHandler(ctx *gin.Context) {
+	restaurantUuid := ctx.Param("restaurant_uuid")
+	if restaurantUuid == "" {
+		logging.LogError("RestaurantUuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	userUuid, _ := ctx.Get("uuid")
+	if userUuid == nil {
+		logging.LogError("UserUuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// サービスに処理を投げる
+	res, err := ReviewService.GetReviewDetail(restaurantUuid, userUuid.(string))
+	if err != nil {
+		logging.LogError("get review detail failed", err)
+
+		// カスタムエラーを分類する
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+
+		// その他の場合のエラーレスポンス
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}

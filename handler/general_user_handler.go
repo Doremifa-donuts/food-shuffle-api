@@ -8,11 +8,10 @@ import (
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
+	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
-
-	"food-shuffle-api/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -57,22 +56,24 @@ func GeneralUserRegisterHandler(ctx *gin.Context) {
 
 // レストランの詳細情報を取得
 func GetRestaurantDetailHandler(ctx *gin.Context) {
-	uuid := ctx.Param("restaurantUuid")
-	if uuid == "" {
+	// ユーザーのUUIDを取得	//TODO: ユーザーがレストランの情報を見る権限があるかを確認する必要がある
+	// userUuid, _ := ctx.Get("uuid")
+	// idAdjusted := userUuid.(string)
+
+	// レストランのUUIDを取得
+	restaurantUuid := ctx.Param("restaurant_uuid")
+	if restaurantUuid == "" {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
 		return
 	}
 
-	detail, err := GeneralUserService.GetRestaurantDetail(uuid)
-
+	detail, err := GeneralUserService.GetRestaurantDetail(restaurantUuid)
 	if err != nil {
 		logging.LogError("get restaurant detail failed", err)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-		ctx.Abort()
 		return
 	}
 
@@ -97,53 +98,6 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }
 
-func GetReviewDetailHandler(ctx *gin.Context) {
-	restaurantUuid := ctx.Param("RestaurantUuid")
-	if restaurantUuid == "" {
-		logging.LogError("RestaurantUuid not found", nil)
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
-		return
-	}
-
-	userUuid, _ := ctx.Get("uuid")
-	if userUuid == nil {
-		logging.LogError("UserUuid not found", nil)
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
-		return
-	}
-
-	detail, err := GeneralUserService.GetReviewDetail(restaurantUuid, userUuid.(string))
-	if err != nil {
-		logging.LogError("get review detail failed", err)
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-		ctx.Abort()
-		return
-	}
-
-	if len(detail.Images) > 0 {
-		// 画像のプレフィックス処理
-		prefixedImages := make([]string, len(detail.Images))
-		for i, image := range detail.Images {
-			if image == "" {
-				//画像の文字列が空、もしくは予期しないエラーが発生した場合
-				logging.LogError("image not found or unexpected error", nil)
-				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-				ctx.Abort()
-				return
-			}
-
-			prefixedImages[i] = prefix.ImagePrefixReview + image
-		}
-		detail.Images = prefixedImages
-	}
-
-	conversion.ResponseJson(ctx, http.StatusOK, detail)
-}
 // 店舗へのチェックインを行う
 func PostCheckInRestaurantHandler(ctx *gin.Context) {
 	// ユーザーUUIDを取得
@@ -221,38 +175,50 @@ func PutShareStatusHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, nil)
 }
 
-func GetIsReviewedRestaurantsHandler(ctx *gin.Context) {
-
-	isReviewed := ctx.Param("isReviewed")
+// レビューを書いた店のリスト
+func GetReviewedRestaurantsHandler(ctx *gin.Context) {
+	// ユーザーUUIDを取得
 	uuid, _ := ctx.Get("uuid")
 	uuidAdjusted := uuid.(string)
 
-	switch isReviewed {
-	case "true":
-		restaurants, err := GeneralUserService.GetIsReviewedRestaurants(true, uuidAdjusted)
-		if err != nil {
-			logging.LogError("get reviewed restaurants failed", err)
-			// エラーレスポンスを返す
-			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-			ctx.Abort()
+	// サービス層に処理を投げる
+	res, err := GeneralUserService.GetIsReviewedRestaurants(true, uuidAdjusted)
+	if err != nil {
+		//カスタムエラーの場合
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 			return
 		}
-		conversion.ResponseJson(ctx, http.StatusOK, restaurants)
-	case "false":
-		restaurants, err := GeneralUserService.GetIsReviewedRestaurants(false, uuidAdjusted)
-		if err != nil {
-			logging.LogError("get not reviewed restaurants failed", err)
-			// エラーレスポンスを返す
-			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-			ctx.Abort()
-			return
-		}
-		conversion.ResponseJson(ctx, http.StatusOK, restaurants)
-	default:
-		logging.LogError("isReviewed not found", nil)
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
+		// その他のエラー
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		return
 	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}
+
+// 訪れただけの店
+func GetVisitedRestaurantsHandler(ctx *gin.Context) {
+	// ユーザーUUIDを取得
+	uuid, _ := ctx.Get("uuid")
+	uuidAdjusted := uuid.(string)
+
+	// サービス層に処理を投げる
+	res, err := GeneralUserService.GetIsReviewedRestaurants(false, uuidAdjusted)
+	if err != nil {
+		//カスタムエラーの場合
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他のエラー
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
 }

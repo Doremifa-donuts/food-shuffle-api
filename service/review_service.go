@@ -250,3 +250,34 @@ func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingRev
 
 	return
 }
+
+// 自身の書いたレビューの詳細を取得する
+func (service *ReviewService) GetReviewDetail(RestaurantUuid string, userUuid string) (res dto.ReviewDetail, err error) {
+	err = repository.Transaction(func(tx *gorm.DB) error {
+
+		//特定のUUIDに一致するレストランの情報を取得
+		reviewDetail, err := repository.GetReviewDetail(tx, RestaurantUuid, userUuid)
+		if err != nil {
+			logging.LogError("failed to get review detail", err)
+			return err
+		}
+
+		// imagesにprefixをつける
+		var prefixedImages []string
+		for _, image := range reviewDetail.Images {
+			prefixedImages = append(prefixedImages, prefix.ImagePrefixReview+image)
+		}
+
+		//取得したデータを格納する
+		res = dto.ReviewDetail{
+			ReviewUuid:     reviewDetail.ReviewUuid,
+			UserUuid:       reviewDetail.UserUuid,
+			RestaurantUuid: reviewDetail.RestaurantUuid,
+			Images:         prefixedImages,
+			CreatedAt:      reviewDetail.CreatedAt,
+			Comment:        reviewDetail.Comment,
+		}
+		return nil
+	})
+	return
+}

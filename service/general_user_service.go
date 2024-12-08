@@ -10,6 +10,7 @@ import (
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/prefix"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -102,11 +103,18 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 			return err
 		}
 
+		// 電話番号を取得する
+		tell, err := repository.GetTellByRestaurantUuid(tx, restaurantDetail.RestaurantUuid)
+		if err != nil {
+			return err
+		}
+
 		//取得したデータをレスポンスの構造体にバインドする
 		res = dto.RestaurantDetail{
 			RestaurantUuid: restaurantDetail.RestaurantUuid,
 			RestaurantName: restaurantDetail.RestaurantName,
 			Address:        restaurantDetail.Address,
+			Tell:           tell,
 			Images:         restaurantDetail.Images,
 			Url:            restaurantDetail.Url,
 			Summary:        restaurantDetail.Summary,
@@ -204,29 +212,66 @@ func (s *GeneralUserService) PutShareStatus(generalUser model.GeneralUser) (err 
 	return
 }
 
-func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, uuid string) ([]dto.VisitedRestaurants, error) {
-	var isReviewedRestaurants []dto.VisitedRestaurants
-
+// 訪れた店の詳細情報をリストで取得する
+func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, userUuid string) (res []dto.RestaurantDetail, err error) {
 	//トランザクションを開始する
-	err := repository.Transaction(func(tx *gorm.DB) error {
-		restaurants, err := repository.GetIsReviewedRestaurants(tx, isReviewed, uuid)
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		// 自身のレビューからレストランのUUID一覧を取得する
+		reviewedRestaurantUuids, err := repository.ListRestaurantUuidsByUserUuidFromReview(tx, userUuid)
 		if err != nil {
-			logging.LogError("failed to get visited restaurants", err)
+			logging.LogError("failed get reviewed restaurant uuid list", err)
 			return err
 		}
-		for _, isReviewedRestaurant := range restaurants {
-			images := []string(isReviewedRestaurant.Images)
-			isReviewedRestaurants = append(isReviewedRestaurants, dto.VisitedRestaurants{
-				RestaurantUuid: isReviewedRestaurant.RestaurantUuid,
-				RestaurantName: isReviewedRestaurant.RestaurantName,
-				Address:        isReviewedRestaurant.Address,
-				Images:         images,
-				Url:            isReviewedRestaurant.Url,
-				Summary:        isReviewedRestaurant.Summary,
-				BusinessHours:  isReviewedRestaurant.BusinessHours,
-			})
+
+		var restaurantUuids []string
+		if isReviewed {
+			// レビューを書いている店舗の場合はそのまま代入する
+			restaurantUuids = reviewedRestaurantUuids
+		} else {
+			// レビューを書いていないものの場合は訪問店舗リストからレビューを書いていない店のリストを取得する
+			restaurantUuids, err = repository.ListFilterRestaurantUuidsByUserUuidNotInRestaurantUuids(tx, userUuid, reviewedRestaurantUuids)
+			if err != nil {
+				return err
+			}
 		}
+
+		// レストランUUIDから詳細を取得する
+		restaurants, err := repository.ListRestaurantByRestaurantUuids(tx, restaurantUuids)
+		if err != nil {
+			return err
+		}
+
+		// 不足している情報を追加する
+		for _, restaurant := range restaurants {
+			// 画像にプレフィックスをつける
+			var prefixedImages []string
+			for _, image := range restaurant.Images {
+				prefixedImages = append(prefixedImages, prefix.ImagePrefixRestaurant+image)
+			}
+
+			// 電話番号を取得
+			tell, err := repository.GetTellByRestaurantUuid(tx, restaurant.RestaurantUuid)
+			if err != nil {
+				return err
+			}
+
+			// 1件のレストラン情報を作成
+			item := dto.RestaurantDetail{
+				RestaurantUuid: restaurant.RestaurantUuid,
+				RestaurantName: restaurant.RestaurantName,
+				Address:        restaurant.Address,
+				Tell:           tell,
+				Images:         prefixedImages,
+				Url:            restaurant.Url,
+				Summary:        restaurant.Summary,
+				BusinessHours:  restaurant.BusinessHours,
+			}
+
+			// レスポンスの構造体に追加
+			res = append(res, item)
+		}
+
 		return nil
 	})
-	return isReviewedRestaurants, err
+	return
 }
