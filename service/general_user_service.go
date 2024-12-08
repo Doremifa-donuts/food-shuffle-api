@@ -109,13 +109,19 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 			return err
 		}
 
+		// 画像IDにプレフィックスをつける
+		var prefixedImages []string
+		for _, image := range restaurantDetail.Images {
+			prefixedImages = append(prefixedImages, prefix.ImagePrefixRestaurant+image)
+		}
+
 		//取得したデータをレスポンスの構造体にバインドする
 		res = dto.RestaurantDetail{
 			RestaurantUuid: restaurantDetail.RestaurantUuid,
 			RestaurantName: restaurantDetail.RestaurantName,
 			Address:        restaurantDetail.Address,
 			Tell:           tell,
-			Images:         restaurantDetail.Images,
+			Images:         prefixedImages,
 			Url:            restaurantDetail.Url,
 			Summary:        restaurantDetail.Summary,
 			BusinessHours:  restaurantDetail.BusinessHours,

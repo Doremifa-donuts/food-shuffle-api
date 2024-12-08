@@ -11,7 +11,6 @@ import (
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
-	"food-shuffle-api/utility/prefix"
 
 	"github.com/gin-gonic/gin"
 )
@@ -61,8 +60,8 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 	// idAdjusted := userUuid.(string)
 
 	// レストランのUUIDを取得
-	restaurantUuid := ctx.Param("restaurant_uuid")
-	if restaurantUuid == "" {
+	restaurantUuid, ok := ctx.Params.Get("restaurant_uuid")
+	if !ok {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
@@ -72,34 +71,22 @@ func GetRestaurantDetailHandler(ctx *gin.Context) {
 	detail, err := GeneralUserService.GetRestaurantDetail(restaurantUuid)
 	if err != nil {
 		logging.LogError("get restaurant detail failed", err)
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		return
 	}
 
-	//画像があればプレフィックスを付ける
-	if len(detail.Images) > 0 {
-		// 画像のプレフィックス処理
-		prefixedImages := make([]string, len(detail.Images))
-		for i, image := range detail.Images {
-			if image == "" {
-				//画像の文字列が空、もしくは予期しないエラーが発生した場合
-				logging.LogError("image not found or unexpected error", nil)
-				conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-				ctx.Abort()
-				return
-			}
-
-			prefixedImages[i] = prefix.ImagePrefixRestaurant + image
-		}
-		detail.Images = prefixedImages
-	}
-
+	// 成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }
 
 // 店舗へのチェックインを行う
-func PostCheckInRestaurantHandler(ctx *gin.Context) {
+func PostCheckinRestaurantHandler(ctx *gin.Context) {
 	// ユーザーUUIDを取得
 	userUuid, _ := ctx.Get("uuid")
 
