@@ -61,6 +61,12 @@ func routing(router *gin.Engine) *gin.Engine {
 					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
 				})
 
+				// レストラン情報を取得する(busy_status確認用)
+				restaurants.GET("/info", handler.GetRestaurantByUuidHandler) // v1/auth/restaurants/info
+
+				// 混雑状況(busy_status)を変更する
+				restaurants.PUT("/:busy_status", handler.UpdateBusyStatusHandler) // v1/auth/restaurants/:busy_status
+
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
 				{
