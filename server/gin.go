@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,6 +45,15 @@ func InitGin() (*gin.Engine, error) {
 			)
 		},
 	}))
+
+	// CORSを許可する
+	engine.Use(cors.New(cors.Config{
+		AllowAllOrigins:     true, // 許可するオリジン
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE",}, // 許可するHTTPメソッド
+		AllowHeaders:     []string{"Content-Type", "Authorization"}, // 許可するヘッダー
+		AllowCredentials: true, // Cookieの使用を許可
+	}))
+	
 
 	// マルチパートフォームが利用できるメモリの制限を設定する(デフォルトは 32 MiB)
 	engine.MaxMultipartMemory = 8 << 20 // 8 MiB
