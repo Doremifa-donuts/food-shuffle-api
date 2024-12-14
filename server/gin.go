@@ -63,6 +63,6 @@ func InitGin() (*gin.Engine, error) {
 
 	// APIサーバのルーティングを読み込む
 	routing(engine)
-	
+
 	return engine, nil
 }

@@ -84,6 +84,12 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 				return err
 			}
 
+			// いいね数をカウントする
+			likes, err := repository.CountReviewLikesByReviewUuid(tx, review.ReviewUuid)
+			if err != nil {
+				return err
+			}
+
 			// Imagesにプレフィックスを追加する
 			for i, image := range review.Images {
 				review.Images[i] = prefix.ImagePrefixReview + image
@@ -108,6 +114,7 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 				PostedAt:       review.CreatedAt,
 				Images:         review.Images,
 				Icon:           icon,
+				Good:           int(likes),
 			})
 		}
 

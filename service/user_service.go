@@ -8,6 +8,7 @@ import (
 	"food-shuffle-api/repository"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/prefix"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -48,24 +49,37 @@ func (userService *UserService) Login(bUser model.User) (res dto.LoginUser, err 
 }
 
 // 店舗ごとのコースの一覧を取得する
-func (service *UserService) GetCourses(uuid string) ([]dto.GetCourses, error) {
-	var courses []dto.GetCourses
+func (service *UserService) GetCourses(restaurantUuid string) (res []dto.GetCourses, err error) {
 	// トランザクションを開始する
-	err := repository.Transaction(func(tx *gorm.DB) error {
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		// レストランが存在することを確かめる
+		err := repository.ExistsRestaurantByRestaurantUuid(tx, restaurantUuid)
+		if err != nil {
+			return err
+		}
+
 		//店舗UUIDに一致するコースを全件取得する
-		allCourses, err := repository.GetCourses(tx, uuid)
+		courses, err := repository.GetCourses(tx, restaurantUuid)
 		if err != nil {
 			logging.LogError("failed to get courses", err)
 			return err
 		}
 
-		for _, course := range allCourses {
-			courses = append(courses, dto.GetCourses{
+		// 構造体に格納していく
+		for _, course := range courses {
+			// 画像にプレフィックスをつける
+			var prefixedImages []string
+			for _, image := range course.Images {
+				prefixedImages = append(prefixedImages, prefix.ImagePrefixCourse+image)
+			}
+
+			// レスポンスの構造体に格納する
+			res = append(res, dto.GetCourses{
 				CourseUuid:     course.CourseUuid,
 				RestaurantUuid: course.RestaurantUuid,
 				CourseName:     course.CourseName,
 				Discription:    course.Description,
-				Images:         course.Images,
+				Images:         prefixedImages,
 				Price:          course.Price,
 				Minimum:        course.Minimum,
 			})
@@ -75,5 +89,5 @@ func (service *UserService) GetCourses(uuid string) ([]dto.GetCourses, error) {
 		return nil
 	})
 
-	return courses, err
+	return
 }

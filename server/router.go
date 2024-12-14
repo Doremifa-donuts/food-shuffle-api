@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"food-shuffle-api/handler"
 	"food-shuffle-api/middleware"
 	"food-shuffle-api/ws"
@@ -11,53 +10,45 @@ import (
 )
 
 func routing(router *gin.Engine) *gin.Engine {
-	// エンドポイントのURLは「/」区切りでグループに所属する
+	// APIバージョン1グループ 将来の拡張性を考えて
 	v1 := router.Group("/v1") // http://IPADDRESS:5678/v1/
 	{
 
 		v1.POST("/login", handler.LoginHandler) // v1/login
 
-		v1.POST("/users/register", handler.GeneralUserRegisterHandler) // v1/users/register
+		v1.POST("/register", handler.GeneralUserRegisterHandler) // v1/register
 
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
-			// 保存した画像へのアクセスを許可　//HACK: 権限をチェックする必要がある
+			// 保存した画像へのアクセスを許可　//HACK: 権限をチェックする必要がある //FIXME: 機能していない
 			auth.Static("/images", "public/images") // v1/auth/images
 
-			// テスト用のエンドポイント
-			auth.GET("/test", func(ctx *gin.Context) { // v1/auth/test
-				fmt.Println("test")
-				fmt.Println(ctx.Get("uuid"))
-				ctx.JSON(http.StatusOK, gin.H{"message": "test"})
-			})
+			// お助けブースト1件取得　//FIXME: 店舗とユーザー側でエンドポイントを分割する
+			auth.GET("/campaigns/:campaign_uuid", handler.GetUrgentCampaignHandler) // v1/auth/campaigns/canpaigns_uuid
 
-			// お助けブースト取得
-			auth.GET("/urgentCampaign/:campaignUuid", handler.GetUrgentCampaignHandler) // v1/auth/urgentcampaign
-
-			// 店舗ごとのコース一覧取得
-			auth.GET("/courses/:restaurantUuid", handler.GetCoursesHandler) // v1/auth/courses/:restaurantUuid
+			// 店舗ごとのコース一覧取得	//FIXME: 店舗とユーザー側でエンドポイントを分割する
+			auth.GET("/courses/:restaurant_uuid", handler.GetCoursesHandler) // v1/auth/courses/:restaurant_uuid
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{
-
 				// WSで位置情報を送信するエンドポイント
 				generals.GET("/locations", ws.LocationShareHandler) // v1/auth/users/locations
 
-				// 店舗へのチェックインを行うエンドポイント
-				generals.POST("/checkIn/:restaurant_uuid", handler.PostCheckInRestaurantHandler)
+				// ユーザーの通知モードの変更
+				generals.PUT("/mode/:status", handler.PutShareStatusHandler) // v1/auth/users/mode/:status
 
 				// レビュー関連
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{
-					// すれ違いで受け取ったレビューの一覧を取得する
+					// すれ違いで受け取ったレビューの一覧を取得する	// FIXME: これきもい
 					reviews.GET("/recieves", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/recieves
 
-					// 興味ありに保存されたレビューの一覧を取得する
+					// 興味ありに保存されたレビューの一覧を取得する　// FIXME: これきもい
 					reviews.GET("/interests", handler.GetInterestedReviewsByUserHandler) // v1/auth/users/reviews/interests
 
-					// いいねをしたレビューの一覧を取得する
+					// いいねをしたレビューの一覧を取得する　// FIXME: これきもい
 					reviews.GET("/likes", handler.GetLikedReviewsByUserHandler) // v1/auth/users/reviews/likes
 
 					// グループにシェアしたレビューの一覧を取得する	//TODO:
@@ -67,10 +58,10 @@ func routing(router *gin.Engine) *gin.Engine {
 					reviews.GET("/posts") // v1/auth/users/reviews/posts
 
 					// レビューを投稿する
-					reviews.POST("/post", handler.PostReviewByUserHandler) // v1/auth/users/reviews/post
+					reviews.POST("/posts", handler.PostReviewByUserHandler) // v1/auth/users/reviews/posts
 
-					// シェアするレビューを設定する
-					reviews.PUT("/set", handler.PutReviewShareSettingHandler) // v1/auth/users/reviews/set
+					// シェアするレビューを設定する //FIXME: レビューを複数件同時にシェアする方法を考える
+					reviews.PUT("/sets", handler.PutReviewShareSettingHandler) // v1/auth/users/reviews/sets
 
 					// レビューステータスを更新する
 					reviews.PUT("/:review_uuid/status/:review_status", handler.PutReviewStatusByUserHandler) // v1/auth/users/reviews/:review_uuid/:review_status
@@ -94,23 +85,16 @@ func routing(router *gin.Engine) *gin.Engine {
 
 						// レビューの詳細を取得する
 						info.GET("/reviews", handler.GetPostedReviewHandler) // v1/auth/users/restaurants/:restaurant_uuid/reviews
+
+						// 店舗へのチェックインを行うエンドポイント
+						generals.POST("/checkin", handler.PostCheckinRestaurantHandler)
 					}
-
 				}
-
-				// ユーザーの通知モードの変更
-				generals.PUT("/putShareStatus/:status", handler.PutShareStatusHandler) // v1/auth/users/putShareStatus
 			}
 
 			// レストランユーザー用のエンドポイント
 			restaurants := auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
-				// レストランユーザーの認証をテストするエンドポイント
-				restaurants.GET("/test", func(ctx *gin.Context) {
-					fmt.Println("test")
-					fmt.Println(ctx.Get("uuid"))
-					ctx.JSON(http.StatusOK, gin.H{"message": "test"})
-				})
 
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
@@ -119,13 +103,13 @@ func routing(router *gin.Engine) *gin.Engine {
 					reservations.GET("/", handler.GetReservationsHandler) // v1/auth/restaurants/reservations/
 				}
 
-				restaurants.POST("/urgentCampaign", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/urgentcampaign
+				// お助けブーストの作成
+				restaurants.POST("/campaigns", handler.CreateUrgentCampaignHandler) // v1/auth/restaurants/campaigns
 
 				//混雑状況の切り替え
-				restaurants.PUT("/busyStatus/:status", handler.PutBusyStatusHandler) // v1/auth/restaurants/busyStatus/:status
+				restaurants.PUT("/mode/:status", handler.PutBusyStatusHandler) // v1/auth/restaurants/mode/:status
 			}
 		}
-
 	}
 	return router
 }

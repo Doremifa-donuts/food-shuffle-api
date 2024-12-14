@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"errors"
 	"food-shuffle-api/model"
+	"food-shuffle-api/utility/custom_error"
+	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -36,4 +39,14 @@ func ListRestaurantByRestaurantUuids(db *gorm.DB, restaurantUuids []string) ([]m
 func PutBusyStatus(db *gorm.DB, restaurantUser model.RestaurantUser) (bool, error) {
 	result := db.Model(&model.RestaurantUser{}).Where("restaurant_uuid = ?", restaurantUser.RestaurantUuid).Update("busy_status", restaurantUser.BusyStatus)
 	return result.RowsAffected == 1, result.Error
+}
+
+// レストランUUIDが存在することを確かめる
+func ExistsRestaurantByRestaurantUuid(db *gorm.DB, restaurantUuid string) error {
+	err := db.Where("restaurant_uuid", restaurantUuid).First(&model.RestaurantUser{}).Error
+	// リソースなしエラーはカスタムエラーとして返す
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return custom_error.NewError(http.StatusBadRequest, "restaurant is not found")
+	}
+	return err
 }

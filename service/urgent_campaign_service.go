@@ -1,10 +1,13 @@
 package service
 
-import(
+import (
+	"errors"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/model"
 	"food-shuffle-api/repository"
+	"food-shuffle-api/utility/custom_error"
+	"net/http"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -13,23 +16,24 @@ import(
 type UrgentCampaignService struct{}
 
 func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign model.UrgentCampaign) (res dto.CreateUrgentCampaign, err error) {
-
+	// トランザクションを開始する
 	err = repository.Transaction(func(tx *gorm.DB) error {
+		// キャンペーンUUIDを生成する
 		CampaignUuid, err := uuid.NewV7()
 		if err != nil {
 			logging.LogError("failed to generate CampaignUuid", err)
 			return err
 		}
 		res.CampaignUuid = CampaignUuid.String()
-
 		urgentCampaign.CampaignUuid = CampaignUuid.String()
 
+		// キャンペーンを新規追加する
 		err = repository.CreateUrgentCampaign(tx, urgentCampaign)
 		if err != nil {
 			logging.LogError("failed to create UrgentCampaign", err)
 			return err
 		}
-		
+
 		return nil
 	})
 
@@ -37,31 +41,30 @@ func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign mode
 }
 
 func (service *UrgentCampaignService) GetUrgentCampaign(uuid string) (res dto.GetUrgentCampaigns, err error) {
-    err = repository.Transaction(func(tx *gorm.DB) error {
-        //特定のUUIDに一致するキャンペーンを取得
-        urgentCampaigns, err := repository.GetUrgentCampaign(tx, uuid)
-        if err != nil {
-            logging.LogError("failed to get UrgentCampaign", err)
-            return err
-        }
-        
-        // 取得したキャンペーンの中から、指定されたUUIDと一致するものを探す
-        for _, campaign := range urgentCampaigns {
-            if campaign.CampaignUuid == uuid {
-                res = dto.GetUrgentCampaigns{
-                    CampaignUuid:    campaign.CampaignUuid,
-                    RestaurantUuid:  campaign.RestaurantUuid,
-                    StartAt:         campaign.StartAt,
-                    EndAt:           campaign.EndAt,
-                    Description:     campaign.Description,
-                    DiscountOffer:   campaign.DiscountOffer,
-                    CreatedAt:       campaign.CreatedAt,
-                }
-                break // 最初に一致したものだけを取得
-            }
-        }
-        
-        return nil
-    })
-    return
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		//特定のUUIDに一致するキャンペーンを取得
+		campaign, err := repository.GetUrgentCampaign(tx, uuid)
+		if err != nil {
+			logging.LogError("failed to get UrgentCampaign", err)
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return custom_error.NewError(http.StatusBadRequest, "campaign uuid is not match")
+			}
+			return err
+		}
+
+		// レスポンスの構造体に格納
+		res = dto.GetUrgentCampaigns{
+			CampaignUuid:   campaign.CampaignUuid,
+			RestaurantUuid: campaign.RestaurantUuid,
+			StartAt:        campaign.StartAt,
+			EndAt:          campaign.EndAt,
+			Description:    campaign.Description,
+			DiscountOffer:  campaign.DiscountOffer,
+			CreatedAt:      campaign.CreatedAt,
+		}
+
+		return nil
+	})
+	return
 }

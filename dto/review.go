@@ -11,6 +11,7 @@ type GetReviewsByUser struct {
 	PostedAt       time.Time // レビューの投稿日時
 	Images         []string  // レビューの画像
 	Icon           string    // ユーザーのアイコン
+	Good           int       // いいねの数
 }
 
 // レビュー投稿のレスポンス
@@ -25,11 +26,12 @@ type ShareSettingReview struct {
 	ThirdShareReviewUuid  string
 }
 
+// レビューの詳細
 type ReviewDetail struct {
-	ReviewUuid              string
-	UserUuid                string
-	RestaurantUuid          string
-	Images                  []string
-	CreatedAt               time.Time
-	Comment                 string
+	ReviewUuid     string
+	UserUuid       string
+	RestaurantUuid string
+	Images         []string
+	CreatedAt      time.Time
+	Comment        string
 }

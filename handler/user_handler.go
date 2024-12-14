@@ -8,7 +8,6 @@ import (
 	"food-shuffle-api/model"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
-	"food-shuffle-api/utility/prefix"
 
 	"github.com/gin-gonic/gin"
 
@@ -53,13 +52,12 @@ func LoginHandler(ctx *gin.Context) {
 }
 
 func GetCoursesHandler(ctx *gin.Context) {
-
-	uuid := ctx.Param("restaurantUuid")
+	// 対象のレストランUUIDを取得する
+	uuid := ctx.Param("restaurant_uuid")
 	if uuid == "" {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
 		return
 	}
 
@@ -67,29 +65,16 @@ func GetCoursesHandler(ctx *gin.Context) {
 	if err != nil {
 		logging.LogError("get courses failed", err)
 		// エラーレスポンスを返す
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他のエラーのレスポンス
 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-		ctx.Abort()
 		return
 	}
 
-	//画像があればプレフィックスを付ける
-	for i := range courses {
-		if len(courses[i].Images) > 0 {
-			// 画像のプレフィックス処理
-			prefixedImages := make([]string, len(courses[i].Images))
-			for j, image := range courses[i].Images {
-				if image == "" {
-					//画像の文字列が空、もしくは予期しないエラーが発生した場合
-					logging.LogError("image not found or unexpected error", nil)
-					conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
-					ctx.Abort()
-					return
-				}
-
-				prefixedImages[j] = prefix.ImagePrefixCourse + image
-			}
-			courses[i].Images = prefixedImages
-		}
-	}
+	// 正常レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, courses)
 }

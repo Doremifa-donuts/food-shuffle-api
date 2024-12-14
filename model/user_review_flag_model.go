@@ -5,10 +5,10 @@ import "time"
 type ReviewStatus string
 
 const (
-	Unclassified  ReviewStatus = "Unclassified"
-	NotInterested ReviewStatus = "NotInterested"
-	Interested    ReviewStatus = "Interested"
-	Iiked         ReviewStatus = "Iiked"
+	Unclassified  ReviewStatus = "Unclassified"  // 未分類
+	NotInterested ReviewStatus = "NotInterested" // 興味なし
+	Interested    ReviewStatus = "Interested"    // 興味あり
+	Iiked         ReviewStatus = "Iiked"         // いいね
 )
 
 type UserReviewFlag struct {

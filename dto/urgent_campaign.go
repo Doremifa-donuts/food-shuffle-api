@@ -3,11 +3,11 @@ package dto
 import "time"
 
 type CreateUrgentCampaign struct {
-	CampaignUuid   string
+	CampaignUuid string
 }
 
 type GetUrgentCampaigns struct {
-	CampaignUuid string
+	CampaignUuid   string
 	RestaurantUuid string
 	StartAt        time.Time
 	EndAt          time.Time
