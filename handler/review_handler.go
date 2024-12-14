@@ -27,7 +27,7 @@ func GetReceivedReviewsByUserHandler(ctx *gin.Context) {
 	uuidAdjusted := uuid.(string)
 
 	// レビュー一覧を取得するサービスに投げる
-	reviews, err := ReviewService.GetReceivedReviewsByUser(uuidAdjusted)
+	reviews, err := ReviewService.GetNewReviewsByUser(uuidAdjusted)
 	// エラーハンドリング
 	if err != nil {
 		// エラーを返す

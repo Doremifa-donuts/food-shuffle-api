@@ -20,6 +20,7 @@ type ReviewService struct{}
 
 // すれ違いで受け取ったレビューを取得する
 func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]dto.GetReviewsByUser, error) {
+
 	// ステータスを Unclassified に限定した構造体に変換する
 	reviewFlag := model.UserReviewFlag{
 		UserUuid:     uuid,
@@ -27,6 +28,66 @@ func (s *ReviewService) GetReceivedReviewsByUser(uuid string) ([]dto.GetReviewsB
 	}
 	// 受け取ったレビューを取得する
 	return s.getReviewsByUser(reviewFlag)
+}
+
+func (s *ReviewService) GetNewReviewsByUser(userUuid string) (res []dto.UnclassifiedReview, err error) {
+	// トランザクションを開始する
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		// レビューの構造体
+		var reviews []dto.UnclassifiedReview
+
+		// レビューの内容を取得する
+		reviews, err = repository.ListReviewUuidsByUserUuidUnClassified(tx, userUuid)
+		if err != nil {
+			logging.LogError("failed to get reviews", err)
+			return err
+		}
+
+		// それぞれに不足している項目を取得する
+		for _, review := range reviews {
+			// レストラン名を取得する
+			restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
+			if err != nil {
+				logging.LogError("failed to get restaurant name", err)
+				return err
+			}
+
+			// Imagesにプレフィックスを追加する
+			for i, image := range review.Images {
+				review.Images[i] = prefix.ImagePrefixReview + image
+			}
+
+			// ユーザーのアイコンを取得する
+			icon, err := repository.GetIconByUserUuid(tx, review.UserUuid)
+			if err != nil {
+				logging.LogError("failed to get icon", err)
+				return err
+			}
+
+			// アイコンにプレフィックスを追加する
+			icon = prefix.ImagePrefixUserIcon + icon
+
+			// レビューをレスポンスに追加する
+			res = append(res, dto.UnclassifiedReview{
+				RestaurantUuid: review.RestaurantUuid,
+				UserUuid:       review.UserUuid,
+				RestaurantName: restaurantName,
+				ReviewUuid:     review.ReviewUuid,
+				Address:        review.Address,
+				Comment:        review.Comment,
+				PostedAt:       review.PostedAt,
+				Images:         review.Images,
+				Icon:           icon,
+				Goods:          review.Goods,
+			})
+		}
+
+		// エラーが出なかった場合はnilでトランザクションを終了する
+		return nil
+	})
+
+	// レスポンスを返却する
+	return
 }
 
 // 興味ありに登録したレビューを取得する

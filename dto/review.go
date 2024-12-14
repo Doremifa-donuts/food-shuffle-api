@@ -13,6 +13,19 @@ type GetReviewsByUser struct {
 	Icon           string    // ユーザーのアイコン
 }
 
+type UnclassifiedReview struct {
+    ReviewUuid      string
+    UserUuid        string
+    RestaurantUuid  string
+	RestaurantName  string
+	Address         string
+    Images          []string
+    PostedAt       time.Time
+    Comment         string
+	Icon            string
+    Goods           int
+}
+
 // レビュー投稿のレスポンス
 type PostReview struct {
 	ReviewUuid string // レビューUUID

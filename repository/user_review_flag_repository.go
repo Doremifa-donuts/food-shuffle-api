@@ -3,6 +3,8 @@ package repository
 import (
 	"food-shuffle-api/model"
 
+	"food-shuffle-api/dto"
+
 	"gorm.io/gorm"
 )
 
@@ -11,6 +13,21 @@ func ListReviewUuidsByUserUuidAndReviewStatus(tx *gorm.DB, reviewFlag model.User
 	var reviewUuids []string
 	err := tx.Model(&model.UserReviewFlag{}).Select("review_uuid").Where("user_uuid = ? AND review_status = ?", reviewFlag.UserUuid, reviewFlag.ReviewStatus).Find(&reviewUuids).Error
 	return reviewUuids, err
+}
+
+func ListReviewUuidsByUserUuidUnClassified(tx *gorm.DB, userUuid string) ([]dto.UnclassifiedReview, error) {
+	var unclassifiedReviews []dto.UnclassifiedReview
+
+	err := tx.Model(&model.Review{}).
+		Select("reviews.*,restaurant_users.address, (SELECT COUNT(*) FROM user_review_flags WHERE review_uuid = reviews.review_uuid AND review_status = ?) AS goods", model.Iiked).
+		Joins("LEFT JOIN user_review_flags AS urf ON reviews.review_uuid = urf.review_uuid AND urf.user_uuid = ?", userUuid).
+		Joins("LEFT JOIN restaurant_users ON reviews.restaurant_uuid = restaurant_users.restaurant_uuid").
+		Where("urf.review_uuid IS NULL OR urf.review_status = ?", model.Unclassified).
+		Where("reviews.user_uuid != ?", userUuid).
+		Find(&unclassifiedReviews).
+		Error
+
+	return unclassifiedReviews, err
 }
 
 // 特定のレビューに対するいいね数をカウントする

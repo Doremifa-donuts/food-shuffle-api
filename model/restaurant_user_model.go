@@ -29,11 +29,11 @@ type RestaurantUser struct {
 var sampleRestaurantUsers = []RestaurantUser{
 	{
 		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		RestaurantName: "sample_resto_name",
+		RestaurantName: "サンプルのお店1",
 		Address:        "東京都千代田区千代田１−１",
 		Latitude:       35.685175,
 		Longitude:      139.7528,
-		Images:         StringArray{"sample_image1", "sample_image2"},
+		Images:         StringArray{"images/store/store_1.png", "images/store/store_2.png",},
 		Url:            "http://google.co.jp",
 		Summary:        "sample_summary",
 		BusinessHours:  "sample_business_hours",
@@ -41,11 +41,11 @@ var sampleRestaurantUsers = []RestaurantUser{
 	},
 	{
 		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
-		RestaurantName: "sample_res_name",
+		RestaurantName: "サンプルのお店2",
 		Address:        "sample_add",
 		Latitude:       35.685175,
 		Longitude:      139.7528,
-		Images:         StringArray{"sample_image3", "sample_image4", "sample_image5"},
+		Images:         StringArray{"images/store/store_1.png", "images/store/store_2.png",},
 		Url:            "http://google.co.jp",
 		Summary:        "sample_summary",
 		BusinessHours:  "sample_business_hours",
