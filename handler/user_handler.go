@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	logging "food-shuffle-api/log"
@@ -51,6 +52,7 @@ func LoginHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, result) // レスポンスにトークンを返す(tokenString)
 }
 
+// コース一覧の取得
 func GetCoursesHandler(ctx *gin.Context) {
 	// 対象のレストランUUIDを取得する
 	uuid := ctx.Param("restaurant_uuid")
@@ -77,4 +79,35 @@ func GetCoursesHandler(ctx *gin.Context) {
 
 	// 正常レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, courses)
+}
+
+// 画像を取得するエンドポイント
+func GetImagesHandler(ctx *gin.Context) {
+	// ユーザーUUIDの取得
+	userUuid, _ := ctx.Get("uuid")
+	idAdjusted := userUuid.(string)
+
+	// 画像IDの取得
+	imageId := ctx.Param("image_id")
+	if imageId == "" {
+		logging.LogError("image id is not set", nil)
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// 閲覧権限があるかどうかを確かめる処理
+	path, err := UserService.CheckImageAccessPermission(idAdjusted, imageId)
+	fmt.Println(path)
+
+	if err != nil {
+		// カスタムエラーの分類
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+	ctx.File(path)
 }

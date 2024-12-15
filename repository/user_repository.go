@@ -54,3 +54,10 @@ func GetTellByRestaurantUuid(db *gorm.DB, restaurantUuid string) (string, error)
 	err := db.Model(&model.User{}).Where("user_uuid", restaurantUuid).Pluck("tell", &tell).Error
 	return tell, err
 }
+
+// ユーザータイプを取得する
+func GetUserType(db *gorm.DB, userUuid string) (model.UserType, error) {
+	var user model.User
+	error := db.Model(&model.User{}).Select("user_type").Where("user_uuid", userUuid).First(&user).Error
+	return user.UserType, error
+}

@@ -95,7 +95,7 @@ func SaveImages(dirPath string, images []*multipart.FileHeader) ([]string, error
 		}
 
 		// ファイル名をスライスに追加
-		imagesPath = append(imagesPath, uuid.String())
+		imagesPath = append(imagesPath, uniqueFileName)
 	}
 	return imagesPath, nil
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"food-shuffle-api/bcrypto"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
@@ -10,6 +11,7 @@ import (
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
 	"net/http"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -86,6 +88,46 @@ func (service *UserService) GetCourses(restaurantUuid string) (res []dto.GetCour
 		}
 
 		// エラーがなければnilを返し、トランザクションをコミットさせる
+		return nil
+	})
+
+	return
+}
+
+// ユーザーがリクエストりした画像の閲覧権限のチェックと画像パスの生成
+func (s *UserService) CheckImageAccessPermission(userUuid string, imageId string) (res string, err error) {
+	// トランザクションの開始
+	// FIXME: 何もチェックしてない
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		//　ユーザーIDからユーザータイプを取得する
+		userType, err := repository.GetUserType(tx, userUuid)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		// 一般ユーザーならば
+		if userType == model.General {
+
+		} else { // レストランユーザーならば
+
+		}
+		strings := strings.SplitAfter(imageId, "_")
+		// プレフィックスから画像の種類を判断する
+		switch strings[0] {
+		case prefix.ImagePrefixCourse:
+			res = "public/images/courses/"
+		case prefix.ImagePrefixRestaurant:
+			res = "public/images/restaurants/"
+		case prefix.ImagePrefixReview:
+			res = "public/images/reviews/"
+		case prefix.ImagePrefixUserIcon:
+			res = "public/images/icons/"
+		}
+
+		// 画像のUUIDをくっつける
+		res = res + strings[1]
+
 		return nil
 	})
 

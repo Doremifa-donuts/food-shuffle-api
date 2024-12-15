@@ -22,7 +22,10 @@ func routing(router *gin.Engine) *gin.Engine {
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
 			// 保存した画像へのアクセスを許可　//HACK: 権限をチェックする必要がある //FIXME: 機能していない
-			auth.Static("/images", "public/images") // v1/auth/images
+			// auth.Static("/images", "public/images") // v1/auth/images
+
+			// 画像取得エンドポイント
+			auth.GET("/images/:image_id", handler.GetImagesHandler)
 
 			// お助けブースト1件取得　//FIXME: 店舗とユーザー側でエンドポイントを分割する
 			auth.GET("/campaigns/:campaign_uuid", handler.GetUrgentCampaignHandler) // v1/auth/campaigns/canpaigns_uuid
@@ -87,7 +90,7 @@ func routing(router *gin.Engine) *gin.Engine {
 						info.GET("/reviews", handler.GetPostedReviewHandler) // v1/auth/users/restaurants/:restaurant_uuid/reviews
 
 						// 店舗へのチェックインを行うエンドポイント
-						generals.POST("/checkin", handler.PostCheckinRestaurantHandler)
+						info.POST("/checkin", handler.PostCheckinRestaurantHandler)
 					}
 				}
 			}

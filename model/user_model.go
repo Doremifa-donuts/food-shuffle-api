@@ -24,7 +24,7 @@ var sampleUsers = []User{
 		UserUuid:    "a0adb027-0f54-4c1a-9ed3-86041c863344",
 		MailAddress: "poster@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
-		Tell:        "08012341234",
+		Tell:        "07012341234",
 		UserType:    General,
 	},
 	{
@@ -32,6 +32,13 @@ var sampleUsers = []User{
 		MailAddress: "viewer@test.com",
 		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
 		Tell:        "08012341234",
+		UserType:    General,
+	},
+	{
+		UserUuid:    "cda7e2fd-338c-400b-9dbe-7e76a62aeb77",
+		MailAddress: "taro@test.com",
+		Password:    "$2a$10$UkrQfUmAsPJ35cw5TVzJeOuoLySOWpMHN/b2zN561eixU0abBSCpq", // test
+		Tell:        "09012341234",
 		UserType:    General,
 	},
 	{
