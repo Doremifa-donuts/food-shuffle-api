@@ -14,6 +14,7 @@ import (
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
+	"strings"
 )
 
 // サービス層のメソッドは構造体と紐づいて管理されているため、処理を投げる構造体を呼び出す
@@ -225,9 +226,8 @@ func PostReviewByUserHandler(ctx *gin.Context) {
 func PutReviewShareSettingHandler(ctx *gin.Context) {
 
 	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
-	if ctx.GetHeader("Content-Type") != "application/json" {
-		logging.LogError("Content-Type is not application/json", nil)
-
+	contentType := ctx.GetHeader("Content-Type")
+	if !strings.HasPrefix(contentType, "application/json") {
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
 		return
