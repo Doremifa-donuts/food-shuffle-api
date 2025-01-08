@@ -67,6 +67,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				// 混雑状況(busy_status)を変更する
 				restaurants.PUT("/:busy_status", handler.UpdateBusyStatusHandler) // v1/auth/restaurants/:busy_status
 
+				// レビュー一覧を取得する
+				restaurants.GET("/reviews", handler.GetReviewsHandler) // v1/auth/restaurants/reviews
+
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
 				{

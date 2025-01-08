@@ -85,3 +85,22 @@ func ReviewPostHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, reviewUuid)
 
 }
+
+// レビュー一覧を取得する
+func GetReviewsHandler(ctx *gin.Context) {
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// レビュー一覧を取得する
+	reviews, err := ReviewService.GetReviewsByRestaurant(uuid.(string))
+	if err != nil {
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// レビュー一覧を返す
+	conversion.ResponseJson(ctx, http.StatusOK, reviews)
+}
