@@ -4,14 +4,20 @@ import "time"
 
 // レビュー一覧のレスポンス
 type GetReviewsByUser struct {
-	RestaurantUuid string    // レストランUUID
-	RestaurantName string    // レストラン名
-	ReviewUuid     string    // レビューUUID
-	Comment        string    // レビューの内容
-	PostedAt       time.Time // レビューの投稿日時
-	Images         []string  // レビューの画像
-	Icon           string    // ユーザーのアイコン
-	Good           int       // いいねの数
+	RestaurantUuid string      // レストランUUID
+	RestaurantName string      // レストラン名
+	ReviewUuid     string      // レビューUUID
+	Comment        string      // レビューの内容
+	CreatedAt      time.Time   // レビューの投稿日時
+	Images         []string    // レビューの画像
+	Icon           string      // ユーザーのアイコン
+	Good           int         // いいねの数
+	Address        string      // 店舗の住所
+	Geolocation    Geolocation //店舗の位置情報
+}
+type Geolocation struct {
+	Latitude  float32
+	Longitude float32
 }
 
 // レビュー投稿のレスポンス

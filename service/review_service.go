@@ -78,7 +78,11 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 		// それぞれに不足している項目を取得する
 		for _, review := range reviews {
 			// レストラン名を取得する
-			restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
+			// restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
+			// if err != nil {
+
+			// }
+			restaurant, err := repository.GetRestaurantDetail(tx, review.RestaurantUuid)
 			if err != nil {
 				logging.LogError("failed to get restaurant name", err)
 				return err
@@ -108,13 +112,18 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 			// レビューをレスポンスに追加する
 			res = append(res, dto.GetReviewsByUser{
 				RestaurantUuid: review.RestaurantUuid,
-				RestaurantName: restaurantName,
+				RestaurantName: restaurant.RestaurantName,
 				ReviewUuid:     review.ReviewUuid,
+				Address:        restaurant.Address,
 				Comment:        review.Comment,
-				PostedAt:       review.CreatedAt,
+				CreatedAt:      review.CreatedAt,
 				Images:         review.Images,
 				Icon:           icon,
 				Good:           int(likes),
+				Geolocation: dto.Geolocation{
+					Latitude:  float32(restaurant.Latitude),
+					Longitude: float32(restaurant.Longitude),
+				},
 			})
 		}
 
