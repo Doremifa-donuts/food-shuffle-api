@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/custom_error"
 )
 
@@ -29,7 +29,7 @@ func GenerateToken(tx *gorm.DB, user *model.User) (string, error) {
 	jtiTokenString := jtiToken.String()
 
 	// 対象ユーザーのjtiトークンを更新する
-	if err := repository.UpdateJtiTokenByUserUuid(tx, user.UserUuid, jtiTokenString); err != nil {
+	if err := orm.UpdateJtiTokenByUserUuid(tx, user.UserUuid, jtiTokenString); err != nil {
 		logging.LogError("failed to save jti", err)
 		return "", err
 	}
@@ -99,7 +99,7 @@ func ValidateToken(tokenString string) (string, error) {
 		uuid := claims["id"].(string)
 
 		// トークンから得られたuuidとjtiの組み合わせを検証
-		err := repository.ExistsUserByUserUuidAndJtiToken(repository.GetDB(), uuid, jti)
+		err := orm.ExistsUserByUserUuidAndJtiToken(orm.GetDB(), uuid, jti)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) { // 一致したレコードが存在しなかった場合
 				err := custom_error.NewError(http.StatusUnauthorized, "pair of jti and uuid not found")

@@ -10,7 +10,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"

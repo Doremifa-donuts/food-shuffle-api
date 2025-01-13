@@ -1,8 +1,8 @@
-package repository
+package orm
 
 import (
 	"errors"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 	"food-shuffle-api/utility/custom_error"
 	"net/http"
 

@@ -3,8 +3,8 @@ package middleware
 import (
 	"errors"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
 
@@ -90,7 +90,7 @@ func authorizeUserType(ctx *gin.Context, userType model.UserType) {
 	uuidAdjusted := uuid.(string)
 
 	// ユーザーのアカウントタイプをチェック
-	err := repository.ExistsUserByUserUuidAndUserType(repository.GetDB(), uuidAdjusted, userType)
+	err := orm.ExistsUserByUserUuidAndUserType(orm.GetDB(), uuidAdjusted, userType)
 	if err != nil {
 		// エラーを分類する
 		// リソースが見つからない場合は、権限のないエンドポイントへの通信を行ったことを意味する

@@ -2,8 +2,8 @@ package service
 
 import (
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/custom_error"
 	"net/http"
 
@@ -14,8 +14,8 @@ type RestaurantUserService struct{}
 
 func (s *RestaurantUserService) PutBusyStatus(restaurantUser model.RestaurantUser) (err error) {
 
-	err = repository.Transaction(func(tx *gorm.DB) error {
-		result, err := repository.PutBusyStatus(tx, restaurantUser)
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		result, err := orm.PutBusyStatus(tx, restaurantUser)
 		if err != nil {
 			logging.LogError("failed to put busy status", err)
 			return err

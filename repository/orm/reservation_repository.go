@@ -1,9 +1,9 @@
-package repository
+package orm
 
 import (
 	"gorm.io/gorm"
 
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 )
 
 // 予約の登録を行う

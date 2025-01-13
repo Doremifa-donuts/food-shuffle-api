@@ -4,8 +4,8 @@ import (
 	"errors"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/img"
 	"food-shuffle-api/utility/prefix"
@@ -54,12 +54,12 @@ func (s *ReviewService) GetLikedReviewsByUser(uuid string) ([]dto.GetReviewsByUs
 // ユーザーのレビューを取得する
 func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res []dto.GetReviewsByUser, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// ユーザーが取得するレビューのUUID
 		var reviewUuids []string
 
 		// ユーザーのレビューを取得する
-		reviewUuids, err := repository.ListReviewUuidsByUserUuidAndReviewStatus(tx, reviewFlag)
+		reviewUuids, err := orm.ListReviewUuidsByUserUuidAndReviewStatus(tx, reviewFlag)
 		if err != nil {
 			logging.LogError("failed to get reviews", err)
 			return err
@@ -69,7 +69,7 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 		var reviews []model.Review
 
 		// レビューの内容を取得する
-		reviews, err = repository.ListReviewsByReviewUuids(tx, reviewUuids)
+		reviews, err = orm.ListReviewsByReviewUuids(tx, reviewUuids)
 		if err != nil {
 			logging.LogError("failed to get reviews", err)
 			return err
@@ -78,18 +78,18 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 		// それぞれに不足している項目を取得する
 		for _, review := range reviews {
 			// レストラン名を取得する
-			// restaurantName, err := repository.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
+			// restaurantName, err := orm.GetRestaurantNameByRestaurantUuid(tx, review.RestaurantUuid)
 			// if err != nil {
 
 			// }
-			restaurant, err := repository.GetRestaurantDetail(tx, review.RestaurantUuid)
+			restaurant, err := orm.GetRestaurantDetail(tx, review.RestaurantUuid)
 			if err != nil {
 				logging.LogError("failed to get restaurant name", err)
 				return err
 			}
 
 			// いいね数をカウントする
-			likes, err := repository.CountReviewLikesByReviewUuid(tx, review.ReviewUuid)
+			likes, err := orm.CountReviewLikesByReviewUuid(tx, review.ReviewUuid)
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 			}
 
 			// ユーザーのアイコンを取得する
-			icon, err := repository.GetIconByUserUuid(tx, review.UserUuid)
+			icon, err := orm.GetIconByUserUuid(tx, review.UserUuid)
 			if err != nil {
 				logging.LogError("failed to get icon", err)
 				return err
@@ -138,9 +138,9 @@ func (s *ReviewService) getReviewsByUser(reviewFlag model.UserReviewFlag) (res [
 // レビューのステータスを更新する
 func (s *ReviewService) UpdateReviewStatus(bReviewFlag model.UserReviewFlag) (err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// レビューのステータスを更新する
-		result, err := repository.UpdateReviewStatus(tx, bReviewFlag)
+		result, err := orm.UpdateReviewStatus(tx, bReviewFlag)
 		if err != nil {
 			logging.LogError("failed to update review status", err)
 			return err
@@ -161,7 +161,7 @@ func (s *ReviewService) UpdateReviewStatus(bReviewFlag model.UserReviewFlag) (er
 // ユーザーがレビューを投稿する
 func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.FileHeader) (res dto.PostReview, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 
 		// その店舗に訪れたことがあるかを確認する
 		// チェックインを記録する構造体
@@ -170,7 +170,7 @@ func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.Fil
 			RestaurantUuid: bReview.RestaurantUuid,
 		}
 
-		ok, err := repository.ExistsUserVisitedRestaurant(tx, userVisited)
+		ok, err := orm.ExistsUserVisitedRestaurant(tx, userVisited)
 		if err != nil {
 			logging.LogError("failed query exists user visited restaurant table", err)
 			return err
@@ -203,7 +203,7 @@ func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.Fil
 		res.ReviewUuid = reviewUuid.String()
 
 		// ユーザーのレビューをDBに保存する
-		err = repository.CreateReview(tx, &bReview)
+		err = orm.CreateReview(tx, &bReview)
 		if err != nil {
 			logging.LogError("failed to create review", err)
 			return err
@@ -219,14 +219,14 @@ func (s *ReviewService) PostReview(bReview model.Review, images []*multipart.Fil
 
 func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingReview) (res dto.ShareSettingReview, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// レビューUUIDが設定されているかを確認する
 		if bShareSettingReview.FirstReviewUuid == nil {
 			logging.LogError("do not set review uuid", nil)
 			return custom_error.NewError(http.StatusBadRequest, "do not set review uuid")
 		}
 		// レビューが本人のものであるかを確認する
-		err = repository.ExistsReviewByUserUuidAndReviewUuid(tx, bShareSettingReview.UserUuid, *bShareSettingReview.FirstReviewUuid)
+		err = orm.ExistsReviewByUserUuidAndReviewUuid(tx, bShareSettingReview.UserUuid, *bShareSettingReview.FirstReviewUuid)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				logging.LogError("review uuid is not own", err)
@@ -234,25 +234,25 @@ func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingRev
 			}
 		}
 		// すでに設定されたものがあるかを確認する
-		_, err := repository.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
+		_, err := orm.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			// レコードがない場合は新規作成
-			err = repository.CreateShareSettingReview(tx, bShareSettingReview)
+			err = orm.CreateShareSettingReview(tx, bShareSettingReview)
 			if err != nil {
 				return err
 			}
 		} else {
 			// レコードが存在する場合は更新
-			err = repository.UpdateShareSettingReview(tx, bShareSettingReview)
+			err = orm.UpdateShareSettingReview(tx, bShareSettingReview)
 			if err != nil {
 				return err
 			}
 		}
 
 		// 作成、更新したデータを取得する
-		setReview, err := repository.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
+		setReview, err := orm.GetShareSettingReviewByUserUuid(tx, bShareSettingReview.UserUuid)
 		if err != nil {
 			return err
 		}
@@ -269,10 +269,10 @@ func (s *ReviewService) SetShareReview(bShareSettingReview model.ShareSettingRev
 
 // 自身の書いたレビューの詳細を取得する
 func (service *ReviewService) GetReviewDetail(RestaurantUuid string, userUuid string) (res dto.ReviewDetail, err error) {
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 
 		//特定のUUIDに一致するレストランの情報を取得
-		reviewDetail, err := repository.GetReviewDetail(tx, RestaurantUuid, userUuid)
+		reviewDetail, err := orm.GetReviewDetail(tx, RestaurantUuid, userUuid)
 		if err != nil {
 			logging.LogError("failed to get review detail", err)
 			return err

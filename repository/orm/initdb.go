@@ -1,9 +1,9 @@
-package repository
+package orm
 
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 	"log"
 	"os"
 	"time"
@@ -79,6 +79,7 @@ func GetDB() *gorm.DB {
 }
 
 // トランザクションを実行する関数
+// dbインスタンスの取得とトランザクションの開始をラップしている
 func Transaction(fn func(tx *gorm.DB) error) error {
 	return db.Transaction(fn)
 }

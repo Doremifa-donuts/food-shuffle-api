@@ -1,8 +1,8 @@
-package repository
+package orm
 
 import (
 	"fmt"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 
 	"gorm.io/gorm"
 )

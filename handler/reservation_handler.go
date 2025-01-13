@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
 

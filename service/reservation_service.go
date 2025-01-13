@@ -3,8 +3,8 @@ package service
 import (
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,7 +15,7 @@ type ReservationService struct{}
 // 予約の登録を行い、トークンを返す
 func (service *ReservationService) ResevationRegister(bReservation model.Reservation) (res dto.PostReservation, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 
 		// UUIDを生成する
 		reservationUuid, err := uuid.NewV7()
@@ -30,7 +30,7 @@ func (service *ReservationService) ResevationRegister(bReservation model.Reserva
 		bReservation.ReservationUuid = reservationUuid.String()
 
 		//予約テーブルに追加情報を追加する
-		err = repository.CreateReservation(tx, bReservation)
+		err = orm.CreateReservation(tx, bReservation)
 		if err != nil {
 			logging.LogError("failed to create user", err)
 			return err
@@ -46,9 +46,9 @@ func (service *ReservationService) ResevationRegister(bReservation model.Reserva
 func (s ReservationService) GetReservationsByRestaurant(uuid string) (res []dto.ReservationsByRestaurant, err error) {
 
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// レストランUUIDから予約を取得する
-		reservations, err := repository.GetReservationsByRestaurantUuid(tx, uuid)
+		reservations, err := orm.GetReservationsByRestaurantUuid(tx, uuid)
 		if err != nil {
 			logging.LogError("failed to get reservations", err)
 			return err
@@ -66,7 +66,7 @@ func (s ReservationService) GetReservationsByRestaurant(uuid string) (res []dto.
 			}
 
 			// 予約されたユーザーUUIDからユーザー情報を取得する
-			user, err := repository.GetGeneralUserByUserUuid(tx, reservation.UserUuid)
+			user, err := orm.GetGeneralUserByUserUuid(tx, reservation.UserUuid)
 			if err != nil {
 				logging.LogError("failed to get user", err)
 				return err

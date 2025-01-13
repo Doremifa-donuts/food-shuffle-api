@@ -7,7 +7,7 @@ import (
 
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
+	"food-shuffle-api/repository/model"
 	"food-shuffle-api/service"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"

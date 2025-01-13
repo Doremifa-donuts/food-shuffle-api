@@ -6,8 +6,8 @@ import (
 	"food-shuffle-api/bcrypto"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
@@ -24,10 +24,10 @@ type GeneralUserService struct{}
 // 一般ユーザーのアカウントを作成し、トークンを返す
 func (service *GeneralUserService) Register(bUser model.User, generalUser model.GeneralUser) (res dto.LoginUser, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 
 		// メールアドレスを元にユーザーが存在するかを確認する
-		_, err := repository.GetUserByMailAddress(tx, bUser.MailAddress)
+		_, err := orm.GetUserByMailAddress(tx, bUser.MailAddress)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) { // 存在しない以外のエラーがある場合
 			logging.LogError("failed to get user", err)
 			return err
@@ -63,14 +63,14 @@ func (service *GeneralUserService) Register(bUser model.User, generalUser model.
 
 		// 挿入するデータが完成したのでここから挿入していく
 		// ユーザーテーブルに一般ユーザーを追加する
-		err = repository.CreateUser(tx, bUser)
+		err = orm.CreateUser(tx, bUser)
 		if err != nil {
 			logging.LogError("failed to create user", err)
 			return err
 		}
 
 		// 一般ユーザーテーブルに追加情報を追加する
-		err = repository.CreateGeneralUser(tx, generalUser)
+		err = orm.CreateGeneralUser(tx, generalUser)
 		if err != nil {
 			logging.LogError("failed to create general user", err)
 			return err
@@ -92,9 +92,9 @@ func (service *GeneralUserService) Register(bUser model.User, generalUser model.
 
 // レストランの詳細情報を取得する
 func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.RestaurantDetail, err error) {
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		//特定のUUIDに一致するレストランの情報を取得
-		restaurantDetail, err := repository.GetRestaurantDetail(tx, uuid)
+		restaurantDetail, err := orm.GetRestaurantDetail(tx, uuid)
 		if err != nil {
 			logging.LogError("failed to get restaurant detail", err)
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -104,7 +104,7 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 		}
 
 		// 電話番号を取得する
-		tell, err := repository.GetTellByRestaurantUuid(tx, restaurantDetail.RestaurantUuid)
+		tell, err := orm.GetTellByRestaurantUuid(tx, restaurantDetail.RestaurantUuid)
 		if err != nil {
 			return err
 		}
@@ -134,14 +134,14 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 // チェックイン処理を行う
 func (s *GeneralUserService) PostCheckInRestaurant(userUuid string, restaurantUuid string, latlong dto.CheckInLocation) (err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// 位置情報の構造体をorb.Point型に変換する
 		location := orb.Point{latlong.Location.Latitude, latlong.Location.Longitude}
 
 		// チェックインを行う店舗の位置情報を取得
-		err := repository.Transaction(func(tx *gorm.DB) error {
+		err := orm.Transaction(func(tx *gorm.DB) error {
 			// レストランの詳細を取得
-			restaurant, err := repository.GetRestaurantDetail(tx, restaurantUuid)
+			restaurant, err := orm.GetRestaurantDetail(tx, restaurantUuid)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return custom_error.NewError(http.StatusBadRequest, "restaurant user is not found by restaurant uuid")
@@ -166,7 +166,7 @@ func (s *GeneralUserService) PostCheckInRestaurant(userUuid string, restaurantUu
 				}
 
 				// 訪れたことがあるかを確認する
-				ok, err := repository.ExistsUserVisitedRestaurant(tx, userVisited)
+				ok, err := orm.ExistsUserVisitedRestaurant(tx, userVisited)
 				fmt.Println("行ったことがある", ok)
 				fmt.Println("err", err)
 				if err != nil {
@@ -174,14 +174,14 @@ func (s *GeneralUserService) PostCheckInRestaurant(userUuid string, restaurantUu
 				}
 				if ok {
 					// 最終訪問日の更新を行う
-					err = repository.UpdateLastVisitedTime(tx, userVisited)
+					err = orm.UpdateLastVisitedTime(tx, userVisited)
 					if err != nil {
 						return err
 					}
 				} else {
 					fmt.Println("ここやってる")
 					// 初回訪問なのでレコードの追加を行う
-					err = repository.CreateUserVisitedRestaurant(tx, userVisited)
+					err = orm.CreateUserVisitedRestaurant(tx, userVisited)
 					fmt.Print("err", err)
 					if err != nil {
 						return err
@@ -201,8 +201,8 @@ func (s *GeneralUserService) PostCheckInRestaurant(userUuid string, restaurantUu
 
 func (s *GeneralUserService) PutShareStatus(generalUser model.GeneralUser) (err error) {
 
-	err = repository.Transaction(func(tx *gorm.DB) error {
-		result, err := repository.PutShareStatus(tx, generalUser)
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		result, err := orm.PutShareStatus(tx, generalUser)
 		if err != nil {
 			logging.LogError("failed to put share status", err)
 			return err
@@ -221,9 +221,9 @@ func (s *GeneralUserService) PutShareStatus(generalUser model.GeneralUser) (err 
 // 訪れた店の詳細情報をリストで取得する
 func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, userUuid string) (res []dto.RestaurantDetail, err error) {
 	//トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// 自身のレビューからレストランのUUID一覧を取得する
-		reviewedRestaurantUuids, err := repository.ListRestaurantUuidsByUserUuidFromReview(tx, userUuid)
+		reviewedRestaurantUuids, err := orm.ListRestaurantUuidsByUserUuidFromReview(tx, userUuid)
 		if err != nil {
 			logging.LogError("failed get reviewed restaurant uuid list", err)
 			return err
@@ -235,14 +235,14 @@ func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, use
 			restaurantUuids = reviewedRestaurantUuids
 		} else {
 			// レビューを書いていないものの場合は訪問店舗リストからレビューを書いていない店のリストを取得する
-			restaurantUuids, err = repository.ListFilterRestaurantUuidsByUserUuidNotInRestaurantUuids(tx, userUuid, reviewedRestaurantUuids)
+			restaurantUuids, err = orm.ListFilterRestaurantUuidsByUserUuidNotInRestaurantUuids(tx, userUuid, reviewedRestaurantUuids)
 			if err != nil {
 				return err
 			}
 		}
 
 		// レストランUUIDから詳細を取得する
-		restaurants, err := repository.ListRestaurantByRestaurantUuids(tx, restaurantUuids)
+		restaurants, err := orm.ListRestaurantByRestaurantUuids(tx, restaurantUuids)
 		if err != nil {
 			return err
 		}
@@ -256,7 +256,7 @@ func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, use
 			}
 
 			// 電話番号を取得
-			tell, err := repository.GetTellByRestaurantUuid(tx, restaurant.RestaurantUuid)
+			tell, err := orm.GetTellByRestaurantUuid(tx, restaurant.RestaurantUuid)
 			if err != nil {
 				return err
 			}

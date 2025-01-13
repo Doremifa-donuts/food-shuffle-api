@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/redisconn"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/orm"
+	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/server"
 	"food-shuffle-api/utility/auth"
+	"food-shuffle-api/utility/cron"
 	"food-shuffle-api/ws"
 	"os"
 )
@@ -19,13 +20,13 @@ func main() {
 	}
 
 	// DBを初期化する
-	err = repository.InitDB()
+	err = orm.InitDB()
 	if err != nil {
 		fmt.Println("Error initializing database", err)
 	}
 
 	// redis を初期化する
-	redisconn.InitRedis()
+	redis.InitRedis()
 
 	// 認証関連のモデルを初期化する
 	err = auth.InitAuth()
@@ -36,6 +37,10 @@ func main() {
 	// ウェブソケットを初期化
 	ws.InitWebsocket()
 
+	fmt.Println("cronの前")
+	cron.Run()
+	fmt.Println("cronの後")
+
 	// ginを初期化する
 	engine, err := server.InitGin()
 	if err != nil {
@@ -44,7 +49,7 @@ func main() {
 		// ポートを環境変数から取得する
 		goPort := os.Getenv("GO_PORT")
 
-		// サーバーを起動する
+		// サーバーをgoroutineで実行
 		engine.Run(":" + goPort)
 	}
 }
