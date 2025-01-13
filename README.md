@@ -1,5 +1,5 @@
 # food-shuffle-api
 
-food shuffleのAPIサーバ
+### Description
 
-説明追加
+位置情報を介して飲食店のレビューを共有するアプリケーション [food Shuffle](https://github.com/Doremifa-donuts) の API サーバ
