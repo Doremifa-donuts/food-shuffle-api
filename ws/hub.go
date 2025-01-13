@@ -6,7 +6,7 @@ type Hub struct {
 	register   chan *Client
 	unregister chan *Client
 	share      chan []string
-	boost      chan []string
+	boost      chan map[string][]string
 }
 
 // ハブを初期化する
@@ -16,7 +16,7 @@ func NewHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		share:      make(chan []string),
-		boost:      make(chan []string),
+		boost:      make(chan map[string][]string),
 	}
 }
 
@@ -32,18 +32,25 @@ func (h *Hub) Run() {
 				close(client.send)
 			}
 		case shareUuids := <-h.share:
-			var keys []string
-			for key := range h.clients {
-				keys = append(keys, key)
-			}
+			// var keys []string
+			// for key := range h.clients {
+			// 	keys = append(keys, key)
+			// }
 			for _, shareUuid := range shareUuids {
 				h.clients[shareUuid].send <- []byte("新たなレビューを取得しました")
 			}
 
-		case boostUuids := <-h.boost:
-			for _, boostUuid := range boostUuids {
-				h.clients[boostUuid].send <- []byte("お助けブーストが届きました")
+		case boostContents := <-h.boost:
+			for item, uuids := range boostContents {
+				for _, uuid := range uuids {
+					h.clients[uuid].send <- []byte(item + "からお助け要請が届きました")
+				}
 			}
 		}
 	}
+}
+
+// ハブのブースト機能に内容を追加する
+func SetBoost(boost map[string][]string) {
+	hub.boost <- boost
 }

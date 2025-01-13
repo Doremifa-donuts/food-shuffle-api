@@ -4,8 +4,8 @@ import (
 	"errors"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/custom_error"
 	"net/http"
 
@@ -17,7 +17,7 @@ type UrgentCampaignService struct{}
 
 func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign model.UrgentCampaign) (res dto.CreateUrgentCampaign, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// キャンペーンUUIDを生成する
 		CampaignUuid, err := uuid.NewV7()
 		if err != nil {
@@ -28,7 +28,7 @@ func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign mode
 		urgentCampaign.CampaignUuid = CampaignUuid.String()
 
 		// キャンペーンを新規追加する
-		err = repository.CreateUrgentCampaign(tx, urgentCampaign)
+		err = orm.CreateUrgentCampaign(tx, urgentCampaign)
 		if err != nil {
 			logging.LogError("failed to create UrgentCampaign", err)
 			return err
@@ -42,9 +42,9 @@ func (service *UrgentCampaignService) UrgentCampaignRegister(urgentCampaign mode
 
 func (service *UrgentCampaignService) GetUrgentCampaign(uuid string) (res dto.GetUrgentCampaigns, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		//特定のUUIDに一致するキャンペーンを取得
-		campaign, err := repository.GetUrgentCampaign(tx, uuid)
+		campaign, err := orm.GetUrgentCampaign(tx, uuid)
 		if err != nil {
 			logging.LogError("failed to get UrgentCampaign", err)
 			if errors.Is(err, gorm.ErrRecordNotFound) {

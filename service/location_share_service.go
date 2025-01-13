@@ -3,9 +3,9 @@ package service
 import (
 	"errors"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/redisconn"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
+	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/utility/custom_error"
 	"regexp"
 	"strconv"
@@ -27,7 +27,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 	}
 
 	// 自分のデータをredisに登録する
-	redisconn.SetGeoLocation(userUuid, latitude, longitude)
+	redis.SetGeoLocation(userUuid, latitude, longitude)
 
 	// レビューを受け取ったユーザーのリスト
 	var receiveUserUuids []string
@@ -35,9 +35,9 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 	var shareSettingReview model.ShareSettingReview
 
 	// 共有するレビューに設定しているリストを取得する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// 共有するレビューがあるかを確認する
-		shareSettingReview, err = repository.GetShareSettingReviewByUserUuid(tx, userUuid)
+		shareSettingReview, err = orm.GetShareSettingReviewByUserUuid(tx, userUuid)
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 
 		// レビューの共有と追加の処理を行う
 		// レビューのいいね数を取得する
-		shareRadius, err := repository.CountReviewLikesByReviewUuid(tx, *shareSettingReview.FirstReviewUuid)
+		shareRadius, err := orm.CountReviewLikesByReviewUuid(tx, *shareSettingReview.FirstReviewUuid)
 		if err != nil {
 			logging.LogError("can not get review like count", err)
 			return err
@@ -57,7 +57,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 		shareRadius += 10 // 最小共有範囲を10mに設定する //TODO: 切り出し
 
 		// 共有範囲にいる人のリストを取得する
-		withinUserUuids, err := redisconn.GetUserUuidsByReviewShareRadius(userUuid, float64(shareRadius+10))
+		withinUserUuids, err := redis.GetUserUuidsByReviewShareRadius(userUuid, shareRadius)
 		if err != nil {
 			logging.LogError("colud not get share target user uuid", err)
 			return err
@@ -69,7 +69,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 		}
 
 		// レビューを所持していない人のみに絞り込む
-		receiveUserUuids, err = repository.ListExcludeUserUuidByReviewUuid(tx, *shareSettingReview.FirstReviewUuid, withinUserUuids)
+		receiveUserUuids, err = orm.ListExcludeUserUuidByReviewUuid(tx, *shareSettingReview.FirstReviewUuid, withinUserUuids)
 		if err != nil {
 			logging.LogError("could not get revieve target user", err)
 			return err
@@ -81,7 +81,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 		}
 
 		// 受け取ったレビューリストに追加する
-		err = repository.CreateUserReviewFlag(tx, *shareSettingReview.FirstReviewUuid, receiveUserUuids)
+		err = orm.CreateUserReviewFlag(tx, *shareSettingReview.FirstReviewUuid, receiveUserUuids)
 		if err != nil {
 			logging.LogError("colud not create review flag", err)
 			return err
@@ -94,9 +94,9 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 	if err == nil {
 
 		// 通知について処理を行う
-		err = repository.Transaction(func(tx *gorm.DB) error {
+		err = orm.Transaction(func(tx *gorm.DB) error {
 			// 店が混雑しているかを取得
-			err = repository.CheckNotPackedStatusByRestaurantUuid(tx, shareSettingReview.FirstReview.RestaurantUuid)
+			err = orm.CheckNotPackedStatusByRestaurantUuid(tx, shareSettingReview.FirstReview.RestaurantUuid)
 			if err != nil {
 				if !errors.Is(err, gorm.ErrRecordNotFound) {
 					logging.LogError("colud not check restaurant is packed", err)
@@ -107,7 +107,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			}
 
 			// 通知モードをオンにしている人のみ通知リストに格納
-			notifyUserUuids, err = repository.ListFilterActiveStatusByUserUuids(tx, receiveUserUuids)
+			notifyUserUuids, err = orm.ListFilterActiveStatusByUserUuids(tx, receiveUserUuids)
 			if err != nil {
 				logging.LogError("colud not filter user uuid", err)
 				return err

@@ -5,8 +5,8 @@ import (
 	"food-shuffle-api/bcrypto"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
-	"food-shuffle-api/model"
-	"food-shuffle-api/repository"
+	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/prefix"
@@ -21,9 +21,9 @@ type UserService struct{}
 // ログイン処理を行う
 func (userService *UserService) Login(bUser model.User) (res dto.LoginUser, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// メールアドレスを元にユーザーが存在するかを確認する
-		user, err := repository.GetUserByMailAddress(tx, bUser.MailAddress)
+		user, err := orm.GetUserByMailAddress(tx, bUser.MailAddress)
 		if err != nil {
 			logging.LogError("failed to get user", err)
 			return custom_error.NewError(http.StatusNotFound, "User not found")
@@ -53,15 +53,15 @@ func (userService *UserService) Login(bUser model.User) (res dto.LoginUser, err 
 // 店舗ごとのコースの一覧を取得する
 func (service *UserService) GetCourses(restaurantUuid string) (res []dto.GetCourses, err error) {
 	// トランザクションを開始する
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		// レストランが存在することを確かめる
-		err := repository.ExistsRestaurantByRestaurantUuid(tx, restaurantUuid)
+		err := orm.ExistsRestaurantByRestaurantUuid(tx, restaurantUuid)
 		if err != nil {
 			return err
 		}
 
 		//店舗UUIDに一致するコースを全件取得する
-		courses, err := repository.GetCourses(tx, restaurantUuid)
+		courses, err := orm.GetCourses(tx, restaurantUuid)
 		if err != nil {
 			logging.LogError("failed to get courses", err)
 			return err
@@ -98,9 +98,9 @@ func (service *UserService) GetCourses(restaurantUuid string) (res []dto.GetCour
 func (s *UserService) CheckImageAccessPermission(userUuid string, imageId string) (res string, err error) {
 	// トランザクションの開始
 	// FIXME: 何もチェックしてない
-	err = repository.Transaction(func(tx *gorm.DB) error {
+	err = orm.Transaction(func(tx *gorm.DB) error {
 		//　ユーザーIDからユーザータイプを取得する
-		userType, err := repository.GetUserType(tx, userUuid)
+		userType, err := orm.GetUserType(tx, userUuid)
 		if err != nil {
 			fmt.Println(err)
 			return err
