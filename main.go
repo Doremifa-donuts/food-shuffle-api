@@ -37,9 +37,8 @@ func main() {
 	// ウェブソケットを初期化
 	ws.InitWebsocket()
 
-	fmt.Println("cronの前")
+	// タスクスケジューラーを起動
 	cron.Run()
-	fmt.Println("cronの後")
 
 	// ginを初期化する
 	engine, err := server.InitGin()

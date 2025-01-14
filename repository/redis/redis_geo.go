@@ -47,7 +47,6 @@ func GetUserUuidsByReviewShareRadius(userUuid string, reviewShareRadius int64) (
 			userUuids = append(userUuids, result.Name)
 		}
 	}
-
 	return userUuids, nil
 }
 
