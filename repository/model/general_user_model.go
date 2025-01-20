@@ -32,14 +32,8 @@ var sampleGeneralUsers = []GeneralUser{
 	},
 	{
 		UserUuid:    "91a78381-f472-496b-90e3-2c66a33391d1",
-		UserName:    "アイアンマン",
+		UserName:    "viewer",
 		ShareStatus: Active,
 		Icon:        "0193c880-e065-7e8b-9e0c-9f333cb92ceb.png",
-	},
-	{
-		UserUuid:    "cda7e2fd-338c-400b-9dbe-7e76a62aeb77",
-		UserName:    "ご飯大好きたろうくん",
-		ShareStatus: Active,
-		Icon:        "0193c880-fbc1-7fcc-a7e6-a95b0547368a.png",
 	},
 }

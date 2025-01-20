@@ -21,17 +21,27 @@ type UserReviewFlag struct {
 // サンプルデータ
 var sampleUserReviewFlag = []UserReviewFlag{
 	{
-		ReviewUuid:   "e08505ac-eb06-43ea-a29b-b206367f7b8d",
+		ReviewUuid:   "0194657f-ce88-7106-b597-956627ca0c3c",
 		UserUuid:     "91a78381-f472-496b-90e3-2c66a33391d1",
-		ReviewStatus: Interested,
+		ReviewStatus: Unclassified,
 	},
 	{
-		ReviewUuid:   "573fa1e4-1510-4eaf-9f1f-9df903bbd020",
+		ReviewUuid:   "0194656d-bb86-725e-bac0-5e8009a8eb05",
 		UserUuid:     "91a78381-f472-496b-90e3-2c66a33391d1",
-		ReviewStatus: Iiked,
+		ReviewStatus: Unclassified,
 	},
 	{
-		ReviewUuid:   "39f93b17-c378-46f4-b55e-0c65642d99b0",
+		ReviewUuid:   "0194656b-cd71-7775-b489-a8d37ca623a7",
+		UserUuid:     "91a78381-f472-496b-90e3-2c66a33391d1",
+		ReviewStatus: Unclassified,
+	},
+	{
+		ReviewUuid:   "01946573-c51b-7d62-93d4-e0442a59d3e0",
+		UserUuid:     "91a78381-f472-496b-90e3-2c66a33391d1",
+		ReviewStatus: Unclassified,
+	},
+	{
+		ReviewUuid:   "019465a5-33d0-76f1-99a0-527ffdff6251",
 		UserUuid:     "91a78381-f472-496b-90e3-2c66a33391d1",
 		ReviewStatus: Unclassified,
 	},

@@ -13,7 +13,7 @@ type ShareSettingReview struct {
 var sampleShareSettingReview = &[]ShareSettingReview{
 	{
 		UserUuid:        "a0adb027-0f54-4c1a-9ed3-86041c863344",
-		FirstReviewUuid: stringPointer("39f93b17-c378-46f4-b55e-0c65642d99b0"),
+		FirstReviewUuid: stringPointer("019465a5-8670-76be-a2e0-45855c448be2"),
 		// SecondReviewUuid: stringPointer("e08505ac-eb06-43ea-a29b-b206367f7b8d"),
 		// ThirdReviewUuid:  stringPointer("573fa1e4-1510-4eaf-9f1f-9df903bbd020"),
 	},

@@ -16,25 +16,49 @@ type Review struct {
 
 // サンプルデータ
 var sampleReviews = []Review{
+
 	{
-		ReviewUuid:     "39f93b17-c378-46f4-b55e-0c65642d99b0",
+		ReviewUuid:     "0194657f-ce88-7106-b597-956627ca0c3c",
 		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
 		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		Images:         StringArray{"0193c904-4d2c-7771-836a-be2a763ad8c2.jpg"},
-		Comment:        "彩り豊かで品数豊富な和食御膳。お刺身や煮物、焼き魚、炊き込みご飯など、一品一品が丁寧に盛り付けられていました。特にお刺身の新鮮さと、煮物の優しい味付けが印象的です。見た目からも楽しめる美しい構成で、季節の食材を活かした内容に満足しました。ボリュームも適量で、最後のフルーツまで美味しくいただけました。和食好きにはたまらない一品です。",
+		Images:         StringArray{"0194657f-ce82-7d3e-a62b-0802edc909eb.jpg", "0194657f-ce85-76ac-89d4-223cd3d25f96.jpg"},
+		Comment:        "落ち着いた雰囲気の中で、本格的なビストロ料理を楽しめる素敵なお店です。素材の味を生かした一皿一皿が丁寧に作られており、味わい深く心に残ります。ワインとのペアリングも絶妙で、特別な時間を過ごせる空間でした。",
 	},
 	{
-		ReviewUuid:     "e08505ac-eb06-43ea-a29b-b206367f7b8d",
+		ReviewUuid:     "0194656d-bb86-725e-bac0-5e8009a8eb05",
 		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
-		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		Images:         StringArray{"0193c908-5884-704f-b377-703909411f03.jpg"},
-		Comment:        "ボリューム満点な唐揚げ定食に驚きました！ジューシーな鶏肉とカリッとした衣が絶妙で、一口食べるごとに満足感が広がります。ご飯との相性も抜群で、ついついお箸が進みます。付け合わせのキャベツやお味噌汁もシンプルながら嬉しい一品。量が多くて満腹になること間違いなしで、ガッツリ食べたい時にはピッタリのメニューです！",
+		RestaurantUuid: "a80499ae-eb6c-1305-a5cc-e1510c52744a",
+		Images:         StringArray{"0194656f-16d0-734b-89e7-5e236e1460e2.jpg"},
+		Comment:        "小さな店内ながら、香ばしい焼き鳥の香りが広がり、居心地の良さを感じます。一串一串が丁寧に焼かれており、外はカリッと中はジューシー。素材の良さと職人技が光る、通いたくなるお店です。",
 	},
 	{
-		ReviewUuid:     "573fa1e4-1510-4eaf-9f1f-9df903bbd020",
+		ReviewUuid:     "0194656b-cd71-7775-b489-a8d37ca623a7",
 		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
-		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		Images:         StringArray{"0193c916-0499-76f3-a8f7-003bc26bab2b.jpg", "0193c915-91c5-7841-9a94-11bbbd16b0e1.jpg", "0193c915-3808-7243-83d5-63e3b94100ce.jpg"},
-		Comment:        "新鮮な刺身の盛り合わせは、どれも色鮮やかで、魚の旨味がしっかり感じられました。特にマグロが柔らかくて絶品でした。天ぷらはサクサクで、エビや季節の野菜の甘みが引き立ち、油っぽさもなく軽やかな食感でした。おにぎりは、ふっくらとしたご飯に具材がしっかり混ざり、香りも豊かで食べ応え十分でした。さらに、他にもさまざまな種類のご飯が提供され、どれも風味豊かで満足感がありました。全体的に、丁寧に作られた料理が揃っていて、非常に満足のいく食事でした。",
+		RestaurantUuid: "0bf97fc8-019e-421b-85f5-84818aab19d8",
+		Images:         StringArray{"0194656b-cd6e-7295-b158-baf162839eff.jpg"},
+		Comment:        "おにぎりの握り具合が絶妙で、口に含むとふわっとほどけるような食感が楽しめます。具材もたっぷりと詰められており、一つ一つに丁寧さとこだわりを感じられる逸品でした。ぜひまた訪れたいお店です。",
+	},
+	{
+		ReviewUuid:     "01946573-c51b-7d62-93d4-e0442a59d3e0",
+		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
+		RestaurantUuid: "d61aed9f-68b0-4efd-af77-98d7e061526d",
+		Images:         StringArray{"01946573-c518-7960-b93e-56b805775912.jpg"},
+		Comment:        "旬のフルーツがこれでもかと盛り付けられた「ボンボン」は、見た目も味も贅沢そのもの。一口ごとに異なるフルーツの甘みや酸味が広がり、最後まで飽きることなく楽しめます。美しいビジュアルと洗練された味わいに感動しました！",
+	},
+	{
+		ReviewUuid:     "019465a5-33d0-76f1-99a0-527ffdff6251",
+		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
+		RestaurantUuid: "6d7c3625-a1fa-4d63-8600-39f538dcac87",
+		Images:         StringArray{"0194659b-8282-7b48-a049-697f83fcee57.png"},
+		Comment:        "しゃぶしゃぶが美味しい",
+		CreatedAt:      time.Date(2024, time.December, 14, 0, 0, 0, 0, time.Local),
+	},
+	{
+		ReviewUuid:     "019465a5-8670-76be-a2e0-45855c448be2",
+		UserUuid:       "a0adb027-0f54-4c1a-9ed3-86041c863344",
+		RestaurantUuid: "5923b6b8-a4d6-4419-acf1-b1410480b0b5",
+		Images:         StringArray{"0194659b-d0b9-70ff-85fb-cbf2271b5ec8.png"},
+		Comment:        "スープが濃厚で、麺ももちもち。大満足。",
+		CreatedAt:      time.Date(2024, time.December, 2, 0, 0, 0, 0, time.Local),
 	},
 }
