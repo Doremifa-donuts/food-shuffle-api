@@ -281,3 +281,18 @@ func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, use
 	})
 	return
 }
+
+func (service *GeneralUserService) GetWentPlaces(uuid string) (res []dto.WentPlaces, err error) {
+	err = repository.Transaction(func(tx *gorm.DB) error {
+		wentPlaces, err := repository.GetWentPlaces(tx, uuid)
+		if err != nil {
+			logging.LogError("failed to get went places", err)
+			return err
+		}
+
+		res = wentPlaces
+
+		return nil
+	})
+	return
+}

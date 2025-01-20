@@ -5,6 +5,7 @@ import (
 	"food-shuffle-api/model"
 	"food-shuffle-api/utility/custom_error"
 	"net/http"
+	"food-shuffle-api/dto"
 
 	"gorm.io/gorm"
 )
@@ -49,4 +50,16 @@ func ExistsRestaurantByRestaurantUuid(db *gorm.DB, restaurantUuid string) error 
 		return custom_error.NewError(http.StatusBadRequest, "restaurant is not found")
 	}
 	return err
+}
+
+func GetWentPlaces(db *gorm.DB, uuid string) ([]dto.WentPlaces, error) {
+	var wentPlaces []dto.WentPlaces
+	
+	err := db.Table("user_visited_restaurants").
+	Select("restaurant_users.restaurant_uuid, restaurant_users.restaurant_name, restaurant_users.latitude, restaurant_users.longitude").
+	Joins("JOIN restaurant_users ON user_visited_restaurants.restaurant_uuid = restaurant_users.restaurant_uuid").
+	Where("user_visited_restaurants.user_uuid = ?", uuid).
+	Find(&wentPlaces).Error
+
+	return wentPlaces, err
 }

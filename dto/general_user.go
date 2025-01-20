@@ -19,3 +19,10 @@ type CheckInLocation struct {
 		Longitude float64 `binding:"required"`
 	}
 }
+
+type WentPlaces struct {
+	RestaurantUuid	string
+	RestaurantName	string
+	Latitude		float64 `binding:"required"`
+	Longitude		float64 `binding:"required"`
+}

@@ -42,6 +42,8 @@ func routing(router *gin.Engine) *gin.Engine {
 				// ユーザーの通知モードの変更
 				generals.PUT("/mode/:status", handler.PutShareStatusHandler) // v1/auth/users/mode/:status
 
+				generals.GET("/places", handler.GetWentPlacesHandler)
+
 				// レビュー関連
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{

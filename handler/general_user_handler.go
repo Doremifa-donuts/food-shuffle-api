@@ -209,3 +209,25 @@ func GetVisitedRestaurantsHandler(ctx *gin.Context) {
 	// 成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 }
+
+func GetWentPlacesHandler(ctx *gin.Context) {
+	//ユーザーUUIDを取得
+	uuid, _ := ctx.Get("uuid")
+	uuidAdjusted := uuid.(string)
+
+	res, err := GeneralUserService.GetWentPlaces(uuidAdjusted)
+	if err != nil {
+		//カスタムエラーの場合
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他のエラー
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}
