@@ -151,3 +151,12 @@ func (s ReservationService) ApproveReservation(uuid string, reservation_uuid str
 	// 返り値を返す
 	return err
 }
+
+func (s ReservationService) DeleteReservation(uuid string, reservation_uuid string) error {
+	// トランザクションを開始する
+	err := repository.Transaction(func(tx *gorm.DB) error {
+		return repository.DeleteReservation(tx, uuid, reservation_uuid)
+	})
+	// 返り値を返す
+	return err
+}

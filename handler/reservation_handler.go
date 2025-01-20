@@ -90,3 +90,28 @@ func ApproveReservationHandler(ctx *gin.Context) {
 	// 予約を返す
 	conversion.ResponseJson(ctx, http.StatusOK, nil)
 }
+
+func DeleteReservationHandler(ctx *gin.Context) {
+	uuid, ok := ctx.Get("uuid")
+	if !ok {
+		logging.LogError("uuid not found", nil)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		ctx.Abort()
+		return
+	}
+	// 予約UUIDを取得
+	reservation_uuid := ctx.Param("reservation_uuid")
+
+	// 予約を削除する
+	err := ReservationService.DeleteReservation(uuid.(string), reservation_uuid)
+	if err != nil {
+		logging.LogError("delete reservation failed", err)
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		ctx.Abort()
+		return
+	}
+
+	conversion.ResponseJson(ctx, http.StatusOK, "Reservation is successfully deleted")
+}

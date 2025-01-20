@@ -30,3 +30,12 @@ func GetReservationByReservationUuid(db *gorm.DB, uuid string, reservation_uuid 
 func UpdateReservationStatus(db *gorm.DB, uuid string, reservation_uuid string, status bool) error {
 	return db.Model(&model.Reservation{}).Where("reservation_uuid = ?", reservation_uuid).Update("reservation_status", status).Error
 }
+
+func DeleteReservation(db *gorm.DB, uuid string, reservation_uuid string) error {
+	var reservation model.Reservation
+	err := db.Where("restaurant_uuid = ? AND reservation_uuid = ?", uuid, reservation_uuid).Delete(&reservation).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -81,6 +81,9 @@ func routing(router *gin.Engine) *gin.Engine {
 
 					// 予約を承認する
 					reservations.POST("/:reservation_uuid/approve", handler.ApproveReservationHandler) // v1/auth/restaurants/reservations/:reservation_uuid/approve
+
+					// 予約を削除する
+					reservations.DELETE("/:reservation_uuid/delete", handler.DeleteReservationHandler) // v1/auth/restaurants/reservations/:reservation_uuid/delete
 				}
 			}
 		}
