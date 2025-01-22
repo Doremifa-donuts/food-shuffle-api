@@ -36,6 +36,9 @@ func routing(router *gin.Engine) *gin.Engine {
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
 			{
+				// ユーザーの行ったところの情報を取得する
+				generals.GET("/places", handler.GetWentPlacesHandler) // v1/auth/users/
+
 				// WSで位置情報を送信するエンドポイント
 				generals.GET("/locations", ws.LocationShareHandler) // v1/auth/users/locations
 
