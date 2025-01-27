@@ -77,8 +77,8 @@ func routing(router *gin.Engine) *gin.Engine {
 				restaurants := generals.Group("/restaurants")
 				{
 					// 行った店の店舗情報一覧取得
-					restaurants.GET("/visited", handler.GetReviewedRestaurantsHandler) // v1/auth/users/visitedRestaurants
-					restaurants.GET("/reviewed", handler.GetVisitedRestaurantsHandler)
+					restaurants.GET("/visited", handler.GetVisitedRestaurantsHandler) // v1/auth/users/visitedRestaurants
+					restaurants.GET("/reviewed", handler.GetReviewedRestaurantsHandler)
 
 					// 1つの店舗に対する情報を取得するグループ
 					info := restaurants.Group("/:restaurant_uuid")
