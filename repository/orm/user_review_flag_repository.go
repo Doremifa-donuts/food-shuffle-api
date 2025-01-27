@@ -4,6 +4,7 @@ import (
 	"food-shuffle-api/repository/model"
 
 	"gorm.io/gorm"
+	"food-shuffle-api/dto"
 )
 
 // ステータスを限定したレビューのUUIDを取得する
@@ -51,4 +52,20 @@ func ListExcludeUserUuidByReviewUuid(db *gorm.DB, reviewUuid string, userUuids [
 		Pluck("user_uuid", &excludedUserUuids).Error
 
 	return excludedUserUuids, err
+}
+
+func GetWentPlaces(db *gorm.DB, uuid string) ([]dto.WentPlaces, error) {
+    var wentPlaces []dto.WentPlaces
+    
+    result := db.Table("user_visited_restaurants").
+        Select("restaurant_users.restaurant_uuid, restaurant_users.restaurant_name, restaurant_users.latitude, restaurant_users.longitude").
+        Joins("JOIN restaurant_users ON user_visited_restaurants.restaurant_uuid = restaurant_users.restaurant_uuid").
+        Where("user_visited_restaurants.user_uuid = ?", uuid).
+        Scan(&wentPlaces)
+
+    if result.Error != nil {
+        return nil, result.Error
+    }
+
+    return wentPlaces, nil
 }

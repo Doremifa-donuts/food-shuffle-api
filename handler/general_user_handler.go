@@ -209,3 +209,28 @@ func GetVisitedRestaurantsHandler(ctx *gin.Context) {
 	// 成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 }
+
+func GetWentPlacesHandler(ctx *gin.Context) {
+    uuid, _ := ctx.Get("uuid")
+    uuidAdjusted := uuid.(string)
+
+    res, err := GeneralUserService.GetWentPlaces(uuidAdjusted)
+    if err != nil {
+        var customErr *custom_error.CustomError
+        if errors.As(err, &customErr) {
+            conversion.ResponseJson(ctx, customErr.StatusCode(), gin.H{"error": customErr.Error()})
+            return
+        }
+        conversion.ResponseJson(ctx, http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+        return
+    }
+
+    if len(res) == 0 {
+        // 結果が空の場合は空配列を返す
+        conversion.ResponseJson(ctx, http.StatusOK, gin.H{"data": []dto.WentPlaces{}})
+        return
+    }
+
+    // 成功レスポンス
+    conversion.ResponseJson(ctx, http.StatusOK, gin.H{"data": res})
+}

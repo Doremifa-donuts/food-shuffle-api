@@ -19,3 +19,10 @@ type CheckInLocation struct {
 		Longitude float64 `binding:"required"`
 	}
 }
+
+type WentPlaces struct {
+    RestaurantUuid string  `json:"restaurant_uuid" gorm:"column:restaurant_uuid"`
+    RestaurantName string  `json:"restaurant_name" gorm:"column:restaurant_name"`
+    Latitude       float64 `json:"latitude" gorm:"column:latitude"`
+    Longitude      float64 `json:"longitude" gorm:"column:longitude"`
+}
