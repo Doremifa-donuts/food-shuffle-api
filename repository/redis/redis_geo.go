@@ -35,7 +35,6 @@ func GetUserUuidsByReviewShareRadius(userUuid string, reviewShareRadius int64) (
 		return userUuids, custom_error.NewError(http.StatusInternalServerError, "can not get user's geo data")
 	}
 
-	//TODO: 適切のレビュー範囲の調整をする
 	results, err := r.client.GeoRadius(r.ctx, key, userGeo.Longitude, userGeo.Latitude, &redis.GeoRadiusQuery{Radius: float64(reviewShareRadius), Unit: "m"}).Result()
 	if err != nil {
 		return userUuids, err

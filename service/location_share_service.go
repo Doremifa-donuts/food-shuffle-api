@@ -7,6 +7,7 @@ import (
 	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/parameters"
 	"regexp"
 	"strconv"
 
@@ -54,7 +55,7 @@ func (s *LocationShareService) NotifyReviewByLocationMessage(userUuid string, la
 			logging.LogError("can not get review like count", err)
 			return err
 		}
-		shareRadius += 10 // 最小共有範囲を10mに設定する //TODO: 切り出し
+		shareRadius += parameters.SHARE_RADIUS // 最小共有範囲を加算
 
 		// 共有範囲にいる人のリストを取得する
 		withinUserUuids, err := redis.GetUserUuidsByReviewShareRadius(userUuid, shareRadius)
