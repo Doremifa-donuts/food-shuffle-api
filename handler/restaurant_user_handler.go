@@ -56,3 +56,26 @@ func PutBusyStatusHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, nil)
 
 }
+
+// 自身の店舗情報を取得する
+func GetOwnRestaurantDetailHandler(ctx *gin.Context) {
+	// 自身のUUIDを取得
+	restaurantUuid, _ := ctx.Get("uuid")
+	idAdjusted := restaurantUuid.(string)
+
+	detail, err := GeneralUserService.GetRestaurantDetail(idAdjusted)
+	if err != nil {
+		logging.LogError("get restaurant detail failed", err)
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// エラーレスポンスを返す
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, detail)
+}

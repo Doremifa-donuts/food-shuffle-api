@@ -101,6 +101,8 @@ func routing(router *gin.Engine) *gin.Engine {
 			// レストランユーザー用のエンドポイント
 			restaurants := auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
+				// 自身の店舗情報を取得する
+				restaurants.GET("/",handler.GetOwnRestaurantDetailHandler)
 
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
