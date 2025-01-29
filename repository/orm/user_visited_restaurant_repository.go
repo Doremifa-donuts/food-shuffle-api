@@ -33,6 +33,24 @@ func UpdateLastVisitedTime(db *gorm.DB, userVisitedRestaurant model.UserVisitedR
 // ユーザーIDが一致し、レストランUUIDのリストには含まれないもののみを取得
 func ListFilterRestaurantUuidsByUserUuidNotInRestaurantUuids(db *gorm.DB, userUuid string, restaurantUuids []string) ([]string, error) {
 	var filteredUuids []string
-	err := db.Model(&model.UserVisitedRestaurant{}).Where("user_uuid = ? and restaurant_uuid not in (?)", userUuid, restaurantUuids).Pluck("restaurant_uuid", &filteredUuids).Error
+	var err error
+	if len(restaurantUuids) == 0 {
+		// restaurantUuids が空の場合は単純に user_uuid の条件だけで検索
+		err = db.Model(&model.UserVisitedRestaurant{}).
+			Where("user_uuid = ?", userUuid).
+			Pluck("restaurant_uuid", &filteredUuids).Error
+	} else {
+		// restaurantUuids が存在する場合は not in 条件も含める
+		err = db.Model(&model.UserVisitedRestaurant{}).
+			Where("user_uuid = ? and restaurant_uuid not in (?)", userUuid, restaurantUuids).
+			Pluck("restaurant_uuid", &filteredUuids).Error
+	}
 	return filteredUuids, err
+}
+
+func ListRestaurantUuidsByUserUuid(db *gorm.DB, userUuid string) ([]string, error) {
+	var filteredUuids []string
+	err := db.Model(&model.UserVisitedRestaurant{}).Where("user_uuid = ?", userUuid).Pluck("restaurant_uuid", &filteredUuids).Error
+	return filteredUuids, err
+
 }
