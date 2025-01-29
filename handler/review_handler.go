@@ -263,6 +263,7 @@ func PutReviewShareSettingHandler(ctx *gin.Context) {
 
 }
 
+// 自身が投稿した店舗に対するレビューを取得する
 func GetPostedReviewHandler(ctx *gin.Context) {
 	restaurantUuid := ctx.Param("restaurant_uuid")
 	if restaurantUuid == "" {
@@ -298,5 +299,33 @@ func GetPostedReviewHandler(ctx *gin.Context) {
 	}
 
 	// 成功レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}
+
+// 一般ユーザーが特定の店舗に対して受け取ったレビューを取得する
+func GetSpecificRestaurantReviewHandler(ctx *gin.Context) {
+	// 自身のUUIDを取得
+	userUuid, _ := ctx.Get("uuid")
+	idAdjusted := userUuid.(string)
+	//レストランのUUIDを取得する
+	restaurantUuid := ctx.Param("restaurant_uuid")
+	// レストランのUUIDが設定されていなかった場合
+	if restaurantUuid == "" {
+		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
+		return
+	}
+
+	// レストランに対しての取得したことのあるレビューの一覧を表示する
+	res, err := ReviewService.GetSpacificRestaurantReviews(idAdjusted, restaurantUuid)
+	if err != nil {
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		} else {
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			return
+		}
+	}
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 }

@@ -41,3 +41,14 @@ type ReviewDetail struct {
 	CreatedAt      time.Time
 	Comment        string
 }
+
+// 特定の店舗に対するレビューの一覧
+type SpecificReviews struct {
+	ReviewUuid string
+	Comment    string    // レビューの内容
+	CreatedAt  time.Time // レビューの投稿日時
+	Images     []string  // レビューの画像
+	Icon       string    // ユーザーのアイコン
+	Good       int       // いいねの数
+	GoodFlag   bool
+}

@@ -45,3 +45,12 @@ func ListRestaurantUuidsByUserUuidFromReview(db *gorm.DB, userUuid string) ([]st
 	err := db.Model(&model.Review{}).Where("user_uuid = ?", userUuid).Pluck("restaurant_uuid", &restaurantUuids).Error
 	return restaurantUuids, err
 }
+
+// レビューの内容を取得する
+func GetReviewByReviewUuid(tx *gorm.DB, reviewUuid string) (model.Review, error) {
+	var review model.Review
+	err := db.Model(model.Review{}).Where("review_uuid = ?", reviewUuid).First(&review).Error
+
+	return review, err
+
+}

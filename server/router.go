@@ -89,9 +89,11 @@ func routing(router *gin.Engine) *gin.Engine {
 						//予約登録
 						info.POST("/reservations", handler.ReservationRegisterHandler) // v1/auth/users/restaurants/:restaurant_uuid/reservations
 
-						// レビューの詳細を取得する
-						info.GET("/reviews", handler.GetPostedReviewHandler) // v1/auth/users/restaurants/:restaurant_uuid/reviews
+						// 自分が投稿したレビューを取得する
+						info.GET("/posted", handler.GetPostedReviewHandler) // v1/auth/users/restaurants/:restaurant_uuid/posted
 
+						// 自身が受け取った店舗に対するレビューを取得する
+						info.GET("/reviews", handler.GetSpecificRestaurantReviewHandler)
 						// 店舗へのチェックインを行うエンドポイント
 						info.POST("/checkin", handler.PostCheckinRestaurantHandler)
 					}

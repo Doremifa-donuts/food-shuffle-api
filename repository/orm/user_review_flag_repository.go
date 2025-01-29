@@ -3,9 +3,17 @@ package orm
 import (
 	"food-shuffle-api/repository/model"
 
-	"gorm.io/gorm"
 	"food-shuffle-api/dto"
+
+	"gorm.io/gorm"
 )
+
+// 全てのステータスのレビューを取得する
+func ListOwnReviews(tx *gorm.DB, userUuid string) ([]model.UserReviewFlag, error) {
+	var reviewUuids []model.UserReviewFlag
+	err := tx.Model(&model.UserReviewFlag{}).Where("user_uuid= ?", userUuid).Find(&reviewUuids).Error
+	return reviewUuids, err
+}
 
 // ステータスを限定したレビューのUUIDを取得する
 func ListReviewUuidsByUserUuidAndReviewStatus(tx *gorm.DB, reviewFlag model.UserReviewFlag) ([]string, error) {
@@ -55,17 +63,17 @@ func ListExcludeUserUuidByReviewUuid(db *gorm.DB, reviewUuid string, userUuids [
 }
 
 func GetWentPlaces(db *gorm.DB, uuid string) ([]dto.WentPlaces, error) {
-    var wentPlaces []dto.WentPlaces
-    
-    result := db.Table("user_visited_restaurants").
-        Select("restaurant_users.restaurant_uuid, restaurant_users.restaurant_name, restaurant_users.latitude, restaurant_users.longitude").
-        Joins("JOIN restaurant_users ON user_visited_restaurants.restaurant_uuid = restaurant_users.restaurant_uuid").
-        Where("user_visited_restaurants.user_uuid = ?", uuid).
-        Scan(&wentPlaces)
+	var wentPlaces []dto.WentPlaces
 
-    if result.Error != nil {
-        return nil, result.Error
-    }
+	result := db.Table("user_visited_restaurants").
+		Select("restaurant_users.restaurant_uuid, restaurant_users.restaurant_name, restaurant_users.latitude, restaurant_users.longitude").
+		Joins("JOIN restaurant_users ON user_visited_restaurants.restaurant_uuid = restaurant_users.restaurant_uuid").
+		Where("user_visited_restaurants.user_uuid = ?", uuid).
+		Scan(&wentPlaces)
 
-    return wentPlaces, nil
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return wentPlaces, nil
 }

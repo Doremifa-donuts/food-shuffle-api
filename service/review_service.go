@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/repository/model"
@@ -292,6 +293,67 @@ func (service *ReviewService) GetReviewDetail(RestaurantUuid string, userUuid st
 			Images:         prefixedImages,
 			CreatedAt:      reviewDetail.CreatedAt,
 			Comment:        reviewDetail.Comment,
+		}
+		return nil
+	})
+	return
+}
+
+// 引数で受け取った店舗のレビューを受け取っていた場合その全てを返す
+func (service *ReviewService) GetSpacificRestaurantReviews(userUuid string, restaurantuuid string) (res []dto.SpecificReviews, err error) {
+	// トランザクションを開始する
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		// 自身が受け取ったレビューのUUID一覧を取得
+		reviewFlags, err := orm.ListOwnReviews(tx, userUuid)
+		if err != nil {
+			return custom_error.NewError(http.StatusInternalServerError, "failed to get user review uuids")
+		}
+		fmt.Println(reviewFlags)
+
+		// 絞り込めたレビューUUIDの内容を取得する
+		for _, reviewFlag := range reviewFlags {
+			// 内容を取得する
+			review, err := orm.GetReviewByReviewUuid(tx, reviewFlag.ReviewUuid)
+			if err != nil {
+				return custom_error.NewError(http.StatusInternalServerError, "failed to get review detail")
+			}
+
+			goodFlag := reviewFlag.ReviewStatus == model.Iiked
+
+			// 関係ない店舗に対するレビューは以降の処理をスキップする
+			if review.RestaurantUuid != restaurantuuid {
+				continue
+			}
+
+			// いいね数を取得する
+			good, err := orm.CountReviewLikesByReviewUuid(tx, reviewFlag.ReviewUuid)
+			if err != nil {
+				return custom_error.NewError(http.StatusInternalServerError, "failed to get review good score")
+			}
+
+			// レビュー画像にプレフィックスを付与する
+			var prefixedImages []string
+			for _, image := range review.Images {
+				prefixedImages = append(prefixedImages, prefix.ImagePrefixReview+image)
+			}
+
+			// アイコンを取得する
+			icon, err := orm.GetIconByUserUuid(tx, review.UserUuid)
+			if err != nil {
+				return err
+			}
+			prefixedIcon := prefix.ImagePrefixUserIcon + icon
+
+			//レスポンスの構造体に詰める
+			res = append(res, dto.SpecificReviews{
+				ReviewUuid: reviewFlag.ReviewUuid,
+				Comment:    review.Comment,
+				CreatedAt:  review.CreatedAt,
+				Images:     prefixedImages,
+				Icon:       prefixedIcon,
+				Good:       int(good),
+				GoodFlag:   goodFlag,
+			})
 		}
 		return nil
 	})
