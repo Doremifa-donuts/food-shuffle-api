@@ -10,6 +10,7 @@ import (
 	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/parameters"
 	"food-shuffle-api/utility/prefix"
 	"net/http"
 
@@ -156,9 +157,8 @@ func (s *GeneralUserService) PostCheckInRestaurant(userUuid string, restaurantUu
 			fmt.Println("userLocation", location)
 			fmt.Println("restaurantLocation", restaurantLocation)
 			fmt.Println("distance", distance)
-			// CHECK IN DISTANCE	//TODO:変数の切り出し
-			var CHECK_IN_DISTANCE float64 = 20
-			if distance < CHECK_IN_DISTANCE {
+
+			if distance < parameters.CHECK_IN_RADIUS {
 				// チェックインテーブルの構造体
 				userVisited := model.UserVisitedRestaurant{
 					UserUuid:       userUuid,
@@ -230,6 +230,7 @@ func (service *GeneralUserService) GetIsReviewedRestaurants(isReviewed bool, use
 		}
 
 		var restaurantUuids []string
+		fmt.Println(reviewedRestaurantUuids)
 		if isReviewed {
 			// レビューを書いている店舗の場合はそのまま代入する
 			restaurantUuids = reviewedRestaurantUuids
