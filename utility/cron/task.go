@@ -5,14 +5,12 @@ import (
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/repository/redis"
+	"food-shuffle-api/utility/parameters"
 	"food-shuffle-api/ws"
 	"time"
 
 	"gorm.io/gorm"
 )
-
-// 通知の範囲を決定する
-var boostRadius int64 = 1000
 
 // 開始時刻付近のお助けブーストを周囲のユーザーに告知する
 func ProivideBoost() {
@@ -37,7 +35,7 @@ func ProivideBoost() {
 				return err
 			}
 			// レストランの位置情報から通知範囲内にいる人を取得
-			userUuids, err := redis.GetUserUuidsByRestaurantBoostRadius(restaurant.Latitude, restaurant.Longitude, boostRadius)
+			userUuids, err := redis.GetUserUuidsByRestaurantBoostRadius(restaurant.Latitude, restaurant.Longitude, parameters.BOOST_RADIUS)
 			if err != nil {
 				logging.LogError("failed to get user uuid list", err)
 				return err
