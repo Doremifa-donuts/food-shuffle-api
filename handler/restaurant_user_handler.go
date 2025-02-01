@@ -79,3 +79,26 @@ func GetOwnRestaurantDetailHandler(ctx *gin.Context) {
 	// 成功レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, detail)
 }
+
+// コース一覧の取得
+func GetOwnCoursesHandler(ctx *gin.Context) {
+	// 対象のレストランUUIDを取得する
+	uuid, _ := ctx.Get("uuid")
+	uuidAdjusted := uuid.(string)
+	courses, err := UserService.GetCourses(uuidAdjusted)
+	if err != nil {
+		logging.LogError("get courses failed", err)
+		// エラーレスポンスを返す
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他のエラーのレスポンス
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 正常レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, courses)
+}

@@ -31,7 +31,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			auth.GET("/campaigns/:campaign_uuid", handler.GetUrgentCampaignHandler) // v1/auth/campaigns/canpaigns_uuid
 
 			// 店舗ごとのコース一覧取得	//FIXME: 店舗とユーザー側でエンドポイントを分割する
-			auth.GET("/courses/:restaurant_uuid", handler.GetCoursesHandler) // v1/auth/courses/:restaurant_uuid
+			auth.GET("/courses/:restaurant_uuid", handler.GetCoursesHandler) // v1/auth/courses/:restaurant_uuid)
 
 			// 一般ユーザー用のエンドポイント
 			generals := auth.Group("/users", middleware.AllowGeneralUsers()) // v1/auth/users
@@ -105,6 +105,8 @@ func routing(router *gin.Engine) *gin.Engine {
 			{
 				// 自身の店舗情報を取得する
 				restaurants.GET("/",handler.GetOwnRestaurantDetailHandler)
+
+				restaurants.GET("/courses", handler.GetOwnCoursesHandler)
 
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
