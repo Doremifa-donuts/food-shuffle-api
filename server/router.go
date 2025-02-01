@@ -108,6 +108,9 @@ func routing(router *gin.Engine) *gin.Engine {
 
 				restaurants.GET("/courses", handler.GetOwnCoursesHandler)
 
+				//レビュー情報取得
+				restaurants.GET("/reviews", handler.GetOwnReviewsHandler)	// v1/auth/restaurants/reviews
+
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
 				{
