@@ -50,3 +50,10 @@ func ExistsRestaurantByRestaurantUuid(db *gorm.DB, restaurantUuid string) error 
 	}
 	return err
 }
+
+func GetOwnReviews(db *gorm.DB, restaurantUuid string) ([]model.Review, error) {
+	var reviews []model.Review
+	err := db.Where("restaurant_uuid = ?", restaurantUuid).Find(&reviews).Error
+	return reviews, err
+
+}

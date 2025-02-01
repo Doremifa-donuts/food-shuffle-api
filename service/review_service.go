@@ -359,3 +359,40 @@ func (service *ReviewService) GetSpacificRestaurantReviews(userUuid string, rest
 	})
 	return
 }
+
+func (service *ReviewService) GetOwnReviewsService(restaurantUuid string) (res []dto.ReviewDetail, err error) {
+	// トランザクションを開始する
+	err = orm.Transaction(func(tx *gorm.DB) error {
+
+		//レビューを取得する
+		reviews, err := orm.GetOwnReviews(tx, restaurantUuid)
+		if err != nil {
+			return custom_error.NewError(http.StatusInternalServerError, "failed to get user review uuids")
+		}
+
+		//レスポンスの構造体に詰める
+		for _, review := range reviews {
+			reviewDetail, err := orm.GetReviewByReviewUuid(tx, review.ReviewUuid)
+			if err != nil {
+				return custom_error.NewError(http.StatusInternalServerError, "failed to get review detail")
+			}
+
+			// imagesにprefixをつける
+			var prefixedImages []string
+			for _, image := range reviewDetail.Images {
+				prefixedImages = append(prefixedImages, prefix.ImagePrefixReview+image)
+			}
+
+			res = append(res, dto.ReviewDetail{
+				ReviewUuid:     review.ReviewUuid,
+				UserUuid:       review.UserUuid,
+				RestaurantUuid: review.RestaurantUuid,
+				Images:         prefixedImages,
+				CreatedAt:      review.CreatedAt,
+				Comment:        reviewDetail.Comment,
+			})
+		}
+		return nil
+	})
+	return
+}

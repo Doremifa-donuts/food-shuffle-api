@@ -329,3 +329,24 @@ func GetSpecificRestaurantReviewHandler(ctx *gin.Context) {
 	}
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 }
+
+//レストランユーザーが自身の店舗のレビューを取得する
+func GetOwnReviewsHandler(ctx *gin.Context) {
+	// 自身のUUIDを取得
+	userUuid, _ := ctx.Get("uuid")
+	idAdjusted := userUuid.(string)
+
+	// レストランに対しての取得したことのあるレビューの一覧を表示する
+	res, err := ReviewService.GetOwnReviewsService(idAdjusted)
+	if err != nil {
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		} else {
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+			return
+		}
+	}
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}
