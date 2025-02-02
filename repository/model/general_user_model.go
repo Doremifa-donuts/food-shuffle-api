@@ -36,4 +36,10 @@ var sampleGeneralUsers = []GeneralUser{
 		ShareStatus: Active,
 		Icon:        "0193c880-e065-7e8b-9e0c-9f333cb92ceb.png",
 	},
+	{
+		UserUuid:    "a0adb027-0f54-4c1a-9ed3-86041c863340",
+		UserName:    "poster",
+		ShareStatus: Active,
+		Icon:        "0193c880-bae4-7f4e-b6f2-9582e1f0dac1.png",
+	},
 }
