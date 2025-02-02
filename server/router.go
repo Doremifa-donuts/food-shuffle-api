@@ -21,9 +21,6 @@ func routing(router *gin.Engine) *gin.Engine {
 		// ログイン後のエンドポイントは全てauthグループに所属する
 		auth := v1.Group("/auth", middleware.Auth()) // v1/auth/
 		{
-			// 保存した画像へのアクセスを許可　//HACK: 権限をチェックする必要がある //FIXME: 機能していない
-			// auth.Static("/images", "public/images") // v1/auth/images
-
 			// 画像取得エンドポイント
 			auth.GET("/images/:image_id", handler.GetImagesHandler)
 
@@ -104,7 +101,7 @@ func routing(router *gin.Engine) *gin.Engine {
 			restaurants := auth.Group("/restaurants", middleware.AllowRestaurantUsers()) // v1/auth/restorants
 			{
 				// 自身の店舗情報を取得する
-				restaurants.GET("/",handler.GetOwnRestaurantDetailHandler)
+				restaurants.GET("/", handler.GetOwnRestaurantDetailHandler)
 
 				restaurants.GET("/courses", handler.GetOwnCoursesHandler)
 

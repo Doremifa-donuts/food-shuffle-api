@@ -17,7 +17,6 @@ import (
 var ReservationService = service.ReservationService{}
 
 func ReservationRegisterHandler(ctx *gin.Context) {
-
 	// リクエストをバインドする
 	var reservation model.Reservation
 	customErr := conversion.BindJSON(ctx, &reservation)
@@ -49,7 +48,7 @@ func ReservationRegisterHandler(ctx *gin.Context) {
 			return
 		}
 
-		// エラーが発生しなかった時のレスポンス
+		// カスタムエラー以外のレスポンス
 		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
 		return
 	}
@@ -65,7 +64,6 @@ func GetReservationsHandler(ctx *gin.Context) {
 		logging.LogError("uuid not found", nil)
 		// エラーレスポンスを返す
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		ctx.Abort()
 		return
 	}
 

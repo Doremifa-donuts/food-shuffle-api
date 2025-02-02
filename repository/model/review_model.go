@@ -14,6 +14,7 @@ type Review struct {
 	PopupGroupSharedReviews []PopupGroupSharedReviews `gorm:"foreignKey:ReviewUuid"`
 }
 
+
 // サンプルデータ
 var sampleReviews = []Review{
 

@@ -160,15 +160,15 @@ func PostReviewByUserHandler(ctx *gin.Context) {
 
 	// jsonを構造体にバインド
 	// jsonデータを取得
-	jsonData := form.Value["data"][0]
+	jsondata := form.Value["jsondata"][0]
 	// jsonデータが空の場合はエラーを返す
-	if jsonData == "" {
+	if jsondata == "" {
 		logging.LogError("Invalid JSON data:", nil)
 		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 		return
 	} else {
 		// JSONデータを構造体にパース
-		if err := json.Unmarshal([]byte(jsonData), &review); err != nil {
+		if err := json.Unmarshal([]byte(jsondata), &review); err != nil {
 			logging.LogError("Error parsing JSON data:", err)
 			conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
 			return
