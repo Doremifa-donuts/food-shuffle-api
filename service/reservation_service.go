@@ -43,8 +43,8 @@ func (service *ReservationService) ResevationRegister(bReservation model.Reserva
 	return
 }
 
+// レストランの予約リストを取得
 func (s ReservationService) GetReservationsByRestaurant(uuid string) (res []dto.ReservationsByRestaurant, err error) {
-
 	// トランザクションを開始する
 	err = orm.Transaction(func(tx *gorm.DB) error {
 		// レストランUUIDから予約を取得する
@@ -83,5 +83,50 @@ func (s ReservationService) GetReservationsByRestaurant(uuid string) (res []dto.
 		return nil
 	})
 
+	return
+}
+
+// ユーザーが自身の予約状況を取得する
+func (s ReservationService) GetUpcomingReservation(userUuid string) (res []dto.UserReservation, err error) {
+	// トランザクションを開始する
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		// 現在自国以降の予約情報を取得する
+		reservations, err := orm.ListUpcomingReservationByUserUuid(tx, userUuid)
+		if err != nil {
+			return err
+		}
+
+		// 予約に不足している情報を取得する
+		for _, reservation := range reservations {
+			// レストラン名
+			restaurantName, err := orm.GetRestaurantNameByRestaurantUuid(tx, reservation.RestaurantUuid)
+			if err != nil {
+				return err
+			}
+
+			// TODO: 予約状況の取得内容が不足している
+			// コース名と価格
+			// if reservation.CourseUuid != nil {
+			// 	course, err := orm.GetSpecificCourse(tx, *reservation.CourseUuid)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// }
+
+			// お助けブースト
+			// if reservation.CampaignUuid != nil {
+			// }
+
+			res = append(res, dto.UserReservation{
+				RestaurantUuid:    reservation.RestaurantUuid,
+				RestaurantName:    restaurantName,
+				ReservationDate:   reservation.ReservationDate,
+				NumberOfPeople:    reservation.NumberOfPeople,
+				ReservationStatus: reservation.ReservationStatus,
+			})
+
+		}
+		return nil
+	})
 	return
 }

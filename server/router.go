@@ -70,6 +70,12 @@ func routing(router *gin.Engine) *gin.Engine {
 					reviews.PUT("/:review_uuid/status/:review_status", handler.PutReviewStatusByUserHandler) // v1/auth/users/reviews/:review_uuid/:review_status
 				}
 
+				// 予約関連
+				reservations := generals.Group("/reservations")
+				{
+					reservations.GET("/upcomings", handler.GetUserUpcomingsReservationsHandler)
+				}
+
 				// ユーザーがレストランに付随する情報を操作するグループ
 				restaurants := generals.Group("/restaurants")
 				{
@@ -106,7 +112,7 @@ func routing(router *gin.Engine) *gin.Engine {
 				restaurants.GET("/courses", handler.GetOwnCoursesHandler)
 
 				//レビュー情報取得
-				restaurants.GET("/reviews", handler.GetOwnReviewsHandler)	// v1/auth/restaurants/reviews
+				restaurants.GET("/reviews", handler.GetOwnReviewsHandler) // v1/auth/restaurants/reviews
 
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")

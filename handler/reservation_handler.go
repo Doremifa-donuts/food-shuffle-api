@@ -81,3 +81,26 @@ func GetReservationsHandler(ctx *gin.Context) {
 	// 予約一覧を返す
 	conversion.ResponseJson(ctx, http.StatusOK, reviews)
 }
+
+// ユーザーが自身の予約状況一覧を取得する
+func GetUserUpcomingsReservationsHandler(ctx *gin.Context) {
+	uuid, _ := ctx.Get("uuid")
+	idAdjusted := uuid.(string)
+
+	res, err := ReservationService.GetUpcomingReservation(idAdjusted)
+	if err != nil {
+		logging.LogError(err.Error(), err)
+		var customErr *custom_error.CustomError
+		// カスタムエラーのレスポンス
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+			return
+		}
+		// その他のレスポンス
+		conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	// 正常レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+}

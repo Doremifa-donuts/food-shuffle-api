@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 
 	"food-shuffle-api/repository/model"
@@ -20,4 +22,12 @@ func GetReservationsByRestaurantUuid(db *gorm.DB, uuid string) ([]model.Reservat
 		return nil, err
 	}
 	return reservations, nil
+}
+
+// ユーザーが予約しているリストを取得する
+func ListUpcomingReservationByUserUuid(tx *gorm.DB, userUuid string) ([]model.Reservation, error) {
+	// 予約の構造体
+	var reservations []model.Reservation
+	err := db.Where("user_uuid = ? and reservation_date > ?", userUuid, time.Now()).Find(&reservations).Error
+	return reservations, err
 }
