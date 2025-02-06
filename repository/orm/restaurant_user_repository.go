@@ -5,6 +5,7 @@ import (
 	"food-shuffle-api/repository/model"
 	"food-shuffle-api/utility/custom_error"
 	"net/http"
+	"food-shuffle-api/dto"
 
 	"gorm.io/gorm"
 )
@@ -56,4 +57,13 @@ func GetOwnReviews(db *gorm.DB, restaurantUuid string) ([]model.Review, error) {
 	err := db.Where("restaurant_uuid = ?", restaurantUuid).Find(&reviews).Error
 	return reviews, err
 
+}
+
+func GetRestaurantPlace(db *gorm.DB, uuid string) (dto.RestaurantPlace, error) {
+	var restaurantPlace model.RestaurantUser
+	err := db.Where("restaurant_uuid = ?", uuid).First(&restaurantPlace).Error
+	return dto.RestaurantPlace{
+		Latitude:   restaurantPlace.Latitude,
+		Longitude:  restaurantPlace.Longitude,
+	}, err
 }

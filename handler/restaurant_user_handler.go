@@ -6,8 +6,10 @@ import (
 
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/repository/model"
+	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/utility/conversion"
 	"food-shuffle-api/utility/custom_error"
+	"food-shuffle-api/utility/parameters"
 
 	"food-shuffle-api/service"
 
@@ -101,4 +103,33 @@ func GetOwnCoursesHandler(ctx *gin.Context) {
 
 	// 正常レスポンス
 	conversion.ResponseJson(ctx, http.StatusOK, courses)
+}
+
+func GetNearbyUsersHandler(ctx *gin.Context) {
+	
+	uuid, _ := ctx.Get("uuid")
+	uuidAdjusted := uuid.(string)
+
+	restaurant, err := RestaurantUserService.GetRestaurantPlace(uuidAdjusted)
+	if err != nil {
+		logging.LogError("failed to get restaurant detail", err)
+		return
+	}
+
+
+	users, err := redis.GetUserUuidsByRestaurantBoostRadius(restaurant.Latitude, restaurant.Longitude, parameters.BOOST_RADIUS)
+	if err != nil {
+		logging.LogError("failed to get user uuid list", err)
+		return
+	}
+
+	response := struct {
+		Count int `json:"count"`
+		Users []string `json:"users"`
+	}{
+		Count: len(users),
+		Users: users,
+	}
+	
+	conversion.ResponseJson(ctx, http.StatusOK, response)
 }
