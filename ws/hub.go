@@ -43,7 +43,7 @@ func (h *Hub) Run() {
 			}
 		case notifyProvider := <-h.notify:
 			// 通知内容を受け取る
-			content := notifyProvider.Content
+			// content := notifyProvider.Content
 			// 通知タイプによって通知内容を作成する
 			switch notifyProvider.Type {
 			case Review:
@@ -57,7 +57,7 @@ func (h *Hub) Run() {
 			}
 
 			// 通知内容をjsonにエンコードする
-			json, err := json.Marshal(content)
+			json, err := json.Marshal(notifyProvider)
 			if err != nil {
 				logging.LogError("failed to marshal json for boost contents", err)
 				return

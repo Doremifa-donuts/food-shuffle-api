@@ -137,14 +137,25 @@ func routing(router *gin.Engine) *gin.Engine {
 
 // 接続確認用の静的サイトを表示する
 func checkConnectionRoute(router *gin.Engine) {
+	router.Static("/static", "public/view")
 	router.LoadHTMLGlob("public/view/*")
 
-	router.GET("/", func(ctx *gin.Context) {
-		httpStatus := http.StatusOK
-		ctx.HTML(httpStatus, "index.html", gin.H{
-			"status":  http.StatusText(httpStatus),
-			"message": "Service is up and running!",
-		})
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "auth.html", nil)
 	})
+	// router.GET("/", func(ctx *gin.Context) {
+	// 	httpStatus := http.StatusOK
+	// 	ctx.HTML(httpStatus, "index.html", gin.H{
+	// 		"status":  http.StatusText(httpStatus),
+	// 		"message": "Service is up and running!",
+	// 	})
+	// })
+	// router.GET("auth.html", func(ctx *gin.Context) {
+	// 	httpStatus := http.StatusOK
+	// 	ctx.HTML(httpStatus, "auth.html", gin.H{
+	// 		"status":  http.StatusText(httpStatus),
+	// 		"message": "Service is up and running!",
+	// 	})
+	// })
 
 }

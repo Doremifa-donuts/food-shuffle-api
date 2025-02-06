@@ -23,6 +23,7 @@ func ProivideBoost() {
 
 		// 通知対象1件ずつに対して通知を行う
 		for _, urgentCampaign := range urgentCampaigns {
+
 			// お知らせブースト対象の店舗を取得する
 			restaurant, err := orm.GetRestaurantDetail(tx, urgentCampaign.RestaurantUuid)
 			if err != nil {

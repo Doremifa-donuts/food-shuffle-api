@@ -18,7 +18,7 @@ var sampleUrgentCampaigns = []UrgentCampaign{
 	{
 		CampaignUuid:   "0193a8ee-6972-7a4e-bc20-71de6517b565",
 		RestaurantUuid: "97961bc1-70c9-43ea-9b4e-18f8bb6574f8",
-		StartAt:        time.Now().Add(3 * time.Hour),
+		StartAt:        time.Now().Add(1 * time.Minute),
 		EndAt:          time.Now().Add(5 * time.Hour),
 		Description:    "10名の予約が突然キャンセルとなり、大変困っています。",
 		DiscountOffer:  "お食事合計金額から500円割引きいたします",

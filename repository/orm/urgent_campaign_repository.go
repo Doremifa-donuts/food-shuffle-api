@@ -22,7 +22,6 @@ func GetUrgentCampaign(db *gorm.DB, campaignUuid string) (model.UrgentCampaign, 
 // 開始時間付近のお助けブースト情報を取得する
 func ListUrgentCampaignByStartAt(db *gorm.DB, startAt time.Time) ([]model.UrgentCampaign, error) {
 	var urgentCampaigns []model.UrgentCampaign
-	// TODO: 通知対象の時間を厳密にする
 	err := db.Where("start_at between ? and ?", startAt.Add(-5*time.Minute), startAt).Find(&urgentCampaigns).Error
 	return urgentCampaigns, err
 }
