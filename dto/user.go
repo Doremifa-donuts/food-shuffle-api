@@ -13,3 +13,8 @@ type GetCourses struct {
 	Price          int
 	Minimum        int
 }
+
+type RestaurantPlace struct {
+	Latitude   float64
+	Longitude  float64
+}

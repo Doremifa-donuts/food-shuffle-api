@@ -114,6 +114,9 @@ func routing(router *gin.Engine) *gin.Engine {
 				//レビュー情報取得
 				restaurants.GET("/reviews", handler.GetOwnReviewsHandler) // v1/auth/restaurants/reviews
 
+				//周辺の人たちを取得するエンドポイント
+				restaurants.GET("/nearby", handler.GetNearbyUsersHandler) // v1/auth/restaurants/nearby
+
 				// レストラン用のエンドポイントはこの中に追加していく
 				reservations := restaurants.Group("/reservations")
 				{

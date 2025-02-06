@@ -1,6 +1,7 @@
 package service
 
 import (
+	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
 	"food-shuffle-api/repository/model"
 	"food-shuffle-api/repository/orm"
@@ -30,4 +31,17 @@ func (s *RestaurantUserService) PutBusyStatus(restaurantUser model.RestaurantUse
 	})
 	return
 
+}
+
+func (s *RestaurantUserService) GetRestaurantPlace(uuid string) (restaurant dto.RestaurantPlace, err error) {
+
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		restaurant, err = orm.GetRestaurantPlace(tx, uuid)
+		if err != nil {
+			logging.LogError("failed to get restaurant place", err)
+			return err
+		}
+		return nil
+	})
+	return
 }
