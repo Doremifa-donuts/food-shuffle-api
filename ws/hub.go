@@ -1,5 +1,7 @@
 package ws
 
+import "fmt"
+
 // クライアント管理の構造体
 type Hub struct {
 	clients    map[string]*Client
@@ -24,26 +26,28 @@ func NewHub() *Hub {
 func (h *Hub) Run() {
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.register: // クライアント登録
 			h.clients[client.userUuid] = client
-		case client := <-h.unregister:
+		case client := <-h.unregister: // クライアント登録解除
 			if _, ok := h.clients[client.userUuid]; ok {
 				delete(h.clients, client.userUuid)
 				close(client.send)
 			}
-		case shareUuids := <-h.share:
-			// var keys []string
-			// for key := range h.clients {
-			// 	keys = append(keys, key)
-			// }
+		case shareUuids := <-h.share: // レビューの通知送信
 			for _, shareUuid := range shareUuids {
-				h.clients[shareUuid].send <- []byte("新たなレビューを取得しました")
+				if client, ok := h.clients[shareUuid]; ok {
+					client.send <- []byte("新たなレビューを取得しました")
+				}
 			}
-
-		case boostContents := <-h.boost:
+		case boostContents := <-h.boost: // ブーストの送信
 			for item, uuids := range boostContents {
 				for _, uuid := range uuids {
-					h.clients[uuid].send <- []byte(item + "からお助け要請が届きました")
+					if client, ok := h.clients[uuid]; ok {
+						// クライアントが存在する場合のみ送信
+						client.send <- []byte(item + "からお助け要請が届きました")
+					} else {
+						fmt.Printf("クライアント %s が見つかりません\n", uuid)
+					}
 				}
 			}
 		}
