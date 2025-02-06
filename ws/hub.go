@@ -1,14 +1,20 @@
 package ws
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	logging "food-shuffle-api/log"
+)
 
 // クライアント管理の構造体
 type Hub struct {
 	clients    map[string]*Client
 	register   chan *Client
 	unregister chan *Client
-	share      chan []string
-	boost      chan map[string][]string
+	// share      chan []string
+	// boost      chan map[string][]string
+	// boost chan dto.BoostNotify
+	notify chan NotifyProvider
 }
 
 // ハブを初期化する
@@ -17,8 +23,10 @@ func NewHub() *Hub {
 		clients:    make(map[string]*Client),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		share:      make(chan []string),
-		boost:      make(chan map[string][]string),
+		// share:      make(chan []string),
+		// boost:      make(chan map[string][]string),
+		// boost: make(chan dto.BoostNotify),
+		notify: make(chan NotifyProvider),
 	}
 }
 
@@ -33,21 +41,34 @@ func (h *Hub) Run() {
 				delete(h.clients, client.userUuid)
 				close(client.send)
 			}
-		case shareUuids := <-h.share: // レビューの通知送信
-			for _, shareUuid := range shareUuids {
-				if client, ok := h.clients[shareUuid]; ok {
-					client.send <- []byte("新たなレビューを取得しました")
+		case notifyProvider := <-h.notify:
+			// 通知内容を受け取る
+			content := notifyProvider.Content
+			// 通知タイプによって通知内容を作成する
+			switch notifyProvider.Type {
+			case Review:
+				notifyProvider.Message = "新たなレビューを取得しました"
+			case Boost:
+				if content, ok := notifyProvider.Content.(BoostContent); ok {
+					notifyProvider.Message = content.RestaurantName + "からお助け要請が届きました"
+				} else {
+					logging.LogError("Incorrect struct type passed as argument", nil)
 				}
 			}
-		case boostContents := <-h.boost: // ブーストの送信
-			for item, uuids := range boostContents {
-				for _, uuid := range uuids {
-					if client, ok := h.clients[uuid]; ok {
-						// クライアントが存在する場合のみ送信
-						client.send <- []byte(item + "からお助け要請が届きました")
-					} else {
-						fmt.Printf("クライアント %s が見つかりません\n", uuid)
-					}
+
+			// 通知内容をjsonにエンコードする
+			json, err := json.Marshal(content)
+			if err != nil {
+				logging.LogError("failed to marshal json for boost contents", err)
+				return
+			}
+			// クライアントに対して通知を行う
+			for _, uuid := range notifyProvider.UserUuids {
+				if client, ok := h.clients[uuid]; ok {
+					// クライアントが存在する場合のみ送信
+					client.send <- []byte(json)
+				} else {
+					fmt.Printf("クライアント %s が見つかりません\n", uuid)
 				}
 			}
 		}
@@ -55,6 +76,9 @@ func (h *Hub) Run() {
 }
 
 // ハブのブースト機能に内容を追加する
-func SetBoost(boost map[string][]string) {
-	hub.boost <- boost
+func SetBoost(userUuids []string, boostContent BoostContent) {
+	hub.notify <- NotifyProvider{UserUuids: userUuids, Type: Boost, Content: boostContent}
+}
+func SetReview(userUuids []string) {
+	hub.notify <- NotifyProvider{UserUuids: userUuids, Type: Review}
 }

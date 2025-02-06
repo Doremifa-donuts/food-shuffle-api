@@ -102,7 +102,7 @@ func (c *Client) read() {
 		if err != nil {
 			logging.LogError("review share service falied", nil)
 		} else {
-			c.hub.share <- userUuids
+			SetReview(userUuids)
 		}
 	}
 }
