@@ -1,6 +1,12 @@
 package dto
 
+type BusyStatus string
 // レストランの詳細情報を取得したときのレスポンス
+const (
+	Free BusyStatus = "Free"
+	Spare BusyStatus = "Spare"
+	Packed BusyStatus = "Packed"
+)
 type RestaurantDetail struct {
 	RestaurantUuid string
 	RestaurantName string
@@ -10,6 +16,7 @@ type RestaurantDetail struct {
 	Url            string
 	Summary        string
 	BusinessHours  string
+	BusyStatus     BusyStatus
 }
 
 // 位置情報のリクエスト
