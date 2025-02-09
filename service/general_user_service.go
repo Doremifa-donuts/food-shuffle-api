@@ -126,6 +126,7 @@ func (service *GeneralUserService) GetRestaurantDetail(uuid string) (res dto.Res
 			Url:            restaurantDetail.Url,
 			Summary:        restaurantDetail.Summary,
 			BusinessHours:  restaurantDetail.BusinessHours,
+			BusyStatus:     dto.BusyStatus(restaurantDetail.BusyStatus),
 		}
 		return nil
 	})
