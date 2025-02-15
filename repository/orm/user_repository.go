@@ -1,6 +1,8 @@
 package orm
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 
 	"food-shuffle-api/repository/model"
@@ -25,6 +27,30 @@ func ExistsUserByUserUuidAndJtiToken(db *gorm.DB, userUuid string, jtiToken stri
 		return err
 	}
 	return nil
+}
+
+// 特定のメールアドレスに一致するユーザーがいるかを確認
+func ExistsUserByMailAddress(db *gorm.DB, mailAddress string) (bool, error) {
+	err := db.Where("mail_address = ?", mailAddress).First(&model.User{}).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// 特定の電話番号に一致するユーザーがいるかをかくにん
+func ExistsUserByTell(db *gorm.DB, tell string) (bool, error) {
+	err := db.Where("tell = ?", tell).First(&model.User{}).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // メールアドレスが一致するユーザーを取得する

@@ -8,13 +8,13 @@ type GetCourses struct {
 	CourseUuid     string
 	RestaurantUuid string
 	CourseName     string
-	Discription    string
+	Description    string
 	Images         []string
 	Price          int
 	Minimum        int
 }
 
 type RestaurantPlace struct {
-	Latitude   float64
-	Longitude  float64
+	Latitude  float64
+	Longitude float64
 }

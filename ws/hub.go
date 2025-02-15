@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	logging "food-shuffle-api/log"
+	"food-shuffle-api/repository/redis"
 )
 
 // クライアント管理の構造体
@@ -38,6 +39,7 @@ func (h *Hub) Run() {
 			h.clients[client.userUuid] = client
 		case client := <-h.unregister: // クライアント登録解除
 			if _, ok := h.clients[client.userUuid]; ok {
+				redis.RemoveUserLocation(client.userUuid)
 				delete(h.clients, client.userUuid)
 				close(client.send)
 			}

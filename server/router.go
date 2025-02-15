@@ -16,6 +16,10 @@ func routing(router *gin.Engine) *gin.Engine {
 
 		v1.POST("/login", handler.LoginHandler) // v1/login
 
+
+		// 一般ユーザーの仮登録に使用する
+		v1.POST("pre-register", handler.GeneralUserPreRegisterHandler)
+		// 一般ユーザーの本登録に使用する
 		v1.POST("/register", handler.GeneralUserRegisterHandler) // v1/register
 
 		// ログイン後のエンドポイントは全てauthグループに所属する
@@ -46,7 +50,7 @@ func routing(router *gin.Engine) *gin.Engine {
 				reviews := generals.Group("/reviews") // v1/auth/users/reviews
 				{
 					// すれ違いで受け取ったレビューの一覧を取得する	// FIXME: これきもい
-					reviews.GET("/recieves", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/recieves
+					reviews.GET("/receives", handler.GetReceivedReviewsByUserHandler) // v1/auth/users/reviews/receives
 
 					// 興味ありに保存されたレビューの一覧を取得する　// FIXME: これきもい
 					reviews.GET("/interests", handler.GetInterestedReviewsByUserHandler) // v1/auth/users/reviews/interests
@@ -137,25 +141,13 @@ func routing(router *gin.Engine) *gin.Engine {
 
 // 接続確認用の静的サイトを表示する
 func checkConnectionRoute(router *gin.Engine) {
-	router.Static("/static", "public/view")
-	router.LoadHTMLGlob("public/view/*")
+	router.Static("/styles", "public/view/styles")
+	router.Static("/scripts", "public/view/scripts")
+	router.Static("/assets", "public/view/assets")
 
-	router.GET("/", func(c *gin.Context) {
+
+	router.LoadHTMLGlob("public/view/html/*")
+	router.GET("/signup", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "auth.html", nil)
 	})
-	// router.GET("/", func(ctx *gin.Context) {
-	// 	httpStatus := http.StatusOK
-	// 	ctx.HTML(httpStatus, "index.html", gin.H{
-	// 		"status":  http.StatusText(httpStatus),
-	// 		"message": "Service is up and running!",
-	// 	})
-	// })
-	// router.GET("auth.html", func(ctx *gin.Context) {
-	// 	httpStatus := http.StatusOK
-	// 	ctx.HTML(httpStatus, "auth.html", gin.H{
-	// 		"status":  http.StatusText(httpStatus),
-	// 		"message": "Service is up and running!",
-	// 	})
-	// })
-
 }

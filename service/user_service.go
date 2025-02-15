@@ -80,7 +80,7 @@ func (service *UserService) GetCourses(restaurantUuid string) (res []dto.GetCour
 				CourseUuid:     course.CourseUuid,
 				RestaurantUuid: course.RestaurantUuid,
 				CourseName:     course.CourseName,
-				Discription:    course.Description,
+				Description:    course.Description,
 				Images:         prefixedImages,
 				Price:          course.Price,
 				Minimum:        course.Minimum,

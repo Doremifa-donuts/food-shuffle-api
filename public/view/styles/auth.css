@@ -1,0 +1,205 @@
+/* Reset and base styles */
+@font-face {
+    font-family: 'Uzura'; /* フォント名 */
+    src: url('../assets/uzura.ttf') format('truetype');
+    font-display: swap;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Font size adjustment for better readability on mobile */
+html {
+    font-size: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+    font-family: 'Uzura';
+    background-color: transparent;
+    color: #333;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Container styling */
+.container {
+    width: 100%;
+    padding: 16px;
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+/* Form styling */
+form {
+    background-color: transparent;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+/* Input group styling */
+.input-group {
+    margin-bottom: 16px;
+}
+
+/* Label styling */
+label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+/* Input field styling */
+input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+input:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+/* Placeholder styling */
+input::placeholder {
+    color: #999;
+}
+
+/* Button styling */
+button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #007aff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 24px;
+}
+
+button:active {
+    background-color: #0051a8;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Message styling */
+.message {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.message.error {
+    background-color: #ffe5e5;
+    color: #d00;
+    border: 1px solid #ffb8b8;
+}
+
+.message.success {
+    background-color: #e5ffe5;
+    color: #0a0;
+    border: 1px solid #b8ffb8;
+}
+
+/* reCAPTCHA container */
+#recaptcha-container {
+    margin: 20px 0;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Section visibility */
+#code-section {
+    display: none;
+}
+
+/* Code verification section */
+#code-section {
+    margin-top: 20px;
+}
+
+#code-section input {
+    letter-spacing: 4px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+/* Safe area handling for modern iOS devices */
+@supports (padding: max(0px)) {
+    .container {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    input {
+        font-size: 16px;
+    }
+}
+
+/* Loading state */
+button.loading {
+    position: relative;
+    background-color: #007aff;
+    color: transparent;
+}
+
+button.loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: button-loading 0.8s linear infinite;
+}
+
+@keyframes button-loading {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 320px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 12px;
+    }
+
+    input {
+        padding: 10px;
+    }
+}

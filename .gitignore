@@ -17,5 +17,8 @@ __debug_bin*
 Thumbs.db
 public/images/*
 
+# firebase admin
+serviceAccountKey.json
+
 # メモ
 2024*.md

@@ -18,22 +18,48 @@ import (
 // サービス層のメソッドは構造体と紐づいて管理されているため、処理を投げる構造体を呼び出す
 var GeneralUserService = service.GeneralUserService{}
 
-// 一般ユーザーのアカウントを作成する
-func GeneralUserRegisterHandler(ctx *gin.Context) {
-	// リクエストをバインドする
-	var user model.User
-	// 一般ユーザーの追加テーブルにもバインドする
-	var generalUser model.GeneralUser
-
-	customErr := conversion.BindJSON(ctx, &user, &generalUser)
+// 一般ユーザーの仮登録を行うエンドポイント
+func GeneralUserPreRegisterHandler(ctx *gin.Context) {
+	// リクエストをバインドする
+	var req dto.PreRegisterRequest
+	customErr := conversion.BindJSON(ctx, &req)
 	if customErr != nil {
 		logging.LogError("failed bind json", customErr)
 		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 		return
 	}
 
+	// 要素の検証を行い、Redisに保存したキーを返す
+	res, err := GeneralUserService.PreRegister(req)
+	if err != nil {
+		logging.LogError("error:", err)
+		var customErr *custom_error.CustomError
+		if errors.As(err, &customErr) {
+			conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+		}else {
+			conversion.ResponseJson(ctx, http.StatusInternalServerError, nil)
+		}
+		return
+	}
+	// 正常レスポンス
+	conversion.ResponseJson(ctx, http.StatusOK, res)
+
+}
+// 一般ユーザーのアカウントを作成する
+func GeneralUserRegisterHandler(ctx *gin.Context) {
+	// リクエストをバインドする
+	var req dto.RegisterRequest
+
+	customErr := conversion.BindJSON(ctx, &req)
+	if customErr != nil {
+		logging.LogError("failed bind json", customErr)
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
+		return
+	}
+
+
 	// サービス層に処理を投げる
-	result, err := GeneralUserService.Register(user, generalUser)
+	result, err := GeneralUserService.Register(req)
 	if err != nil {
 		// エラーログを書き込む
 		logging.LogError("Error registering general user:", err)

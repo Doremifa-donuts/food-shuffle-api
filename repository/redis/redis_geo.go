@@ -7,10 +7,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const key = "locations"
+
 // 位置情報をredisに登録する
 func SetGeoLocation(userUuid string, latitude float64, longitude float64) error {
 	r := *Redis
-	key := "locations"
 	err := r.client.GeoAdd(r.ctx, key, &redis.GeoLocation{
 		Name:      userUuid,
 		Longitude: longitude,
@@ -19,13 +20,13 @@ func SetGeoLocation(userUuid string, latitude float64, longitude float64) error 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // 自身からレビュー共有範囲内のユーザーのUUIDを取得
 func GetUserUuidsByReviewShareRadius(userUuid string, reviewShareRadius int64) ([]string, error) {
 	r := *Redis
-	key := "locations"
 
 	var userUuids []string
 	// ユーザーの位置情報を取得
@@ -52,7 +53,6 @@ func GetUserUuidsByReviewShareRadius(userUuid string, reviewShareRadius int64) (
 // 店舗の付近にいるユーザーのリストを取得する
 func GetUserUuidsByRestaurantBoostRadius(latitude float64, longitude float64, reviewShareRadius int64) ([]string, error) {
 	r := *Redis
-	key := "locations"
 
 	var userUuids []string
 
@@ -66,4 +66,10 @@ func GetUserUuidsByRestaurantBoostRadius(latitude float64, longitude float64, re
 	}
 
 	return userUuids, nil
+}
+
+// 特定のユーザーの位置情報データを削除
+func RemoveUserLocation(userUuid string) {
+	r := *Redis
+	r.client.ZRem(r.ctx, key, userUuid)
 }

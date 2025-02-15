@@ -1,17 +1,24 @@
 package service
 
 import (
+	crypto_rand "crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"food-shuffle-api/bcrypto"
 	"food-shuffle-api/dto"
 	logging "food-shuffle-api/log"
+	"food-shuffle-api/repository/fireauth"
 	"food-shuffle-api/repository/model"
 	"food-shuffle-api/repository/orm"
+	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/utility/auth"
 	"food-shuffle-api/utility/custom_error"
 	"food-shuffle-api/utility/parameters"
 	"food-shuffle-api/utility/prefix"
+	"io"
+	"math/rand/v2"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -22,20 +29,128 @@ import (
 
 type GeneralUserService struct{}
 
-// 一般ユーザーのアカウントを作成し、トークンを返す
-func (service *GeneralUserService) Register(bUser model.User, generalUser model.GeneralUser) (res dto.LoginUser, err error) {
-	// トランザクションを開始する
-	err = orm.Transaction(func(tx *gorm.DB) error {
+// 一般ユーザーのアカウント作成のために入力されたデータが正しいものかを判定する
+func (s *GeneralUserService) PreRegister(req dto.PreRegisterRequest) (res dto.PreRegisterResponse, err error) {
+	// 送信されたデータに未入力の項目がないかを確認する
+	if req.MailAddress == "" || req.UserName == "" || req.Password == "" || req.ConfirmPassword == "" || req.Tell == "" {
+		return res, custom_error.NewError(http.StatusBadRequest, "Some fields are incomplete. ")
+	}
 
-		// メールアドレスを元にユーザーが存在するかを確認する
-		_, err := orm.GetUserByMailAddress(tx, bUser.MailAddress)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) { // 存在しない以外のエラーがある場合
-			logging.LogError("failed to get user", err)
+	// パスワードと入力の確認が一致しているかを確認する
+	if req.Password != req.ConfirmPassword {
+		return res, custom_error.NewError(http.StatusBadRequest, "password is not match")
+	}
+	// パスワードを暗号化する
+	// パスワードをハッシュ化する
+	hashedPassword, err := bcrypto.GetHashPassword(req.Password)
+	if err != nil {
+		logging.LogError("failed to hash password", err)
+		return res, err
+	}
+
+	// データベースに保存しているものと重複していないことを確認する
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		// メールアドレスが登録済みでないことを確認する
+		result, err := orm.ExistsUserByMailAddress(tx, req.MailAddress)
+		if err != nil {
 			return err
 		}
-		if err == nil { // メールアドレスが一致するユーザーが存在する場合
-			logging.LogError("users mail address already exists", err)
-			return custom_error.NewError(http.StatusConflict, "User already exists")
+		if result {
+			return custom_error.NewError(http.StatusConflict, "This email address is already in use.")
+		}
+		// 電話番号が登録済みでないことを確認する
+		result, err = orm.ExistsUserByTell(tx, req.Tell)
+		if err != nil {
+			return err
+		}
+		if result {
+			return custom_error.NewError(http.StatusConflict, "This tell is already in use.")
+		}
+		return nil
+	})
+	if err != nil {
+		return res, err
+	}
+
+	// 期限を1時間にしてredisに仮データを保管する
+	randBytes := make([]byte, 64)
+	_, err = io.ReadFull(crypto_rand.Reader, randBytes)
+	if err != nil {
+		return res, err
+	}
+
+	// バイト列のデータをBase64でエンコーディングし、文字列を生成
+	res.Key = base64.RawURLEncoding.WithPadding(base64.NoPadding).EncodeToString(randBytes)
+
+	// redisに仮データを登録
+	userInfo := redis.UserInfo{
+		MailAddress: req.MailAddress,
+		UserName:    req.UserName,
+		Password:    hashedPassword,
+		Tell:        req.Tell,
+	}
+	// jsonに変換
+	value, err := json.Marshal(userInfo)
+	if err != nil {
+		return res, err
+	}
+	// Redisに仮登録データを保存
+	err = redis.CachePreRegistrationUser(res.Key, value)
+
+	return
+}
+
+// 一般ユーザーのアカウントを作成し、トークンを返す
+func (service *GeneralUserService) Register(req dto.RegisterRequest) (res dto.LoginUser, err error) {
+	// idTokenがfirebaseによって生成されたものかを確認する
+	token, err := fireauth.VerifyIDToken(req.Token)
+	if err != nil {
+		return res, custom_error.NewError(http.StatusUnauthorized, "id token can not verification.")
+	}
+	// トークンが電話番号によって得られたものをか確認する
+	if token.Firebase.SignInProvider != "phone" {
+		return res, custom_error.NewError(http.StatusUnauthorized, "sign in provider is not phone.")
+	}
+
+	// 仮登録キーから保存されているユーザーデータを取得する
+	result, err := redis.GetPreRegistrationUser(req.PreRegisterKey)
+	if err != nil {
+		return res, err
+	}
+	
+	// 仮登録キーに一致するユーザーデータが見つからなかったとき
+	if result == nil {
+		return res, custom_error.NewError(http.StatusBadRequest, "pre-register-key is not available.")
+	}
+	// jsonになっている仮登録キーを復元する
+	var userInfo redis.UserInfo
+	err = json.Unmarshal(result, &userInfo)
+	if err != nil {
+		return res, err
+	}
+
+	// 仮登録と電話番号認証で使われた電話番号が同一であることを確認する
+	if token.Claims["phone_number"] != userInfo.Tell {
+		return res, custom_error.NewError(http.StatusUnauthorized, "token phone number not equals pre-register number.")
+	}
+
+	// トランザクションを開始する
+	err = orm.Transaction(func(tx *gorm.DB) error {
+		// メールアドレスが登録済みでないことを確認する
+		result, err := orm.ExistsUserByMailAddress(tx, userInfo.MailAddress)
+		if err != nil {
+			return err
+		}
+		if result {
+			return custom_error.NewError(http.StatusConflict, "This email address is already in use.")
+		}
+		// 電話番号が登録済みでないことを確認する
+		result, err = orm.ExistsUserByTell(tx, userInfo.Tell)
+		if err != nil {
+			return err
+		}
+		if result {
+			return custom_error.NewError(http.StatusConflict, "This tell is already in use.")
 		}
 
 		// UUIDを生成する
@@ -46,39 +161,40 @@ func (service *GeneralUserService) Register(bUser model.User, generalUser model.
 		}
 
 		// それぞれのテーブルにuuidを挿入する
-		bUser.UserUuid = uuid.String()
-		generalUser.UserUuid = uuid.String()
-
-		// パスワードをハッシュ化する
-		hashedPassword, err := bcrypto.GetHashPassword(bUser.Password)
-		if err != nil {
-			logging.LogError("failed to hash password", err)
-			return err
+		userUuid := uuid.String()
+		user := model.User{
+			UserUuid:    userUuid,
+			MailAddress: userInfo.MailAddress,
+			Password:    userInfo.Password,
+			Tell:        userInfo.Tell,
+			UserType:    model.General,
 		}
+		// HACK: ユーザーアイコンは初期はランダム設定にしている
+		userIcons := []string{"0193c880-bae4-7f4e-b6f2-9582e1f0dac1.png", "0193c880-e065-7e8b-9e0c-9f333cb92ceb.png", "0193c880-fbc1-7fcc-a7e6-a95b0547368a.png"}
 
-		// ハッシュ化したパスワードに入れ替える
-		bUser.Password = hashedPassword
-
-		// ユーザータイプを一般に設定する
-		bUser.UserType = model.General
+		genUser := model.GeneralUser{
+			UserUuid: userUuid,
+			UserName: userInfo.UserName,
+			Icon:     userIcons[rand.IntN(len(userIcons))],
+		}
 
 		// 挿入するデータが完成したのでここから挿入していく
 		// ユーザーテーブルに一般ユーザーを追加する
-		err = orm.CreateUser(tx, bUser)
+		err = orm.CreateUser(tx, user)
 		if err != nil {
 			logging.LogError("failed to create user", err)
 			return err
 		}
 
 		// 一般ユーザーテーブルに追加情報を追加する
-		err = orm.CreateGeneralUser(tx, generalUser)
+		err = orm.CreateGeneralUser(tx, genUser)
 		if err != nil {
 			logging.LogError("failed to create general user", err)
 			return err
 		}
 
 		// トークンを発行する
-		res.JtiToken, err = auth.GenerateToken(tx, &bUser)
+		res.JtiToken, err = auth.GenerateToken(tx, &user)
 		if err != nil {
 			logging.LogError("failed to generate token", err)
 			return err

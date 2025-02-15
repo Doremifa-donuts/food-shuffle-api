@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	logging "food-shuffle-api/log"
+	"food-shuffle-api/repository/fireauth"
 	"food-shuffle-api/repository/orm"
 	"food-shuffle-api/repository/redis"
 	"food-shuffle-api/server"
@@ -10,13 +11,21 @@ import (
 	"food-shuffle-api/utility/cron"
 	"food-shuffle-api/ws"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
 	// ログを初期化する
 	err := logging.InitLogging()
 	if err != nil {
 		fmt.Println("Error initializing logging", err)
+	}
+
+	err = godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
 	}
 
 	// DBを初期化する
@@ -30,6 +39,12 @@ func main() {
 
 	// 認証関連のモデルを初期化する
 	err = auth.InitAuth()
+	if err != nil {
+		fmt.Println("Error initializing authentication", err)
+	}
+
+	// firebase adminSDK の初期化
+	err = fireauth.InitFirebase()
 	if err != nil {
 		fmt.Println("Error initializing authentication", err)
 	}
