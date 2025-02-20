@@ -223,28 +223,15 @@ func PostReviewByUserHandler(ctx *gin.Context) {
 
 // ユーザーがシェアするレビューを設定する
 func PutReviewShareSettingHandler(ctx *gin.Context) {
-
-	// ヘッダーのContent-Typeにapplication/jsonが含まれているか確認
-	if ctx.GetHeader("Content-Type") != "application/json" {
-		logging.LogError("Content-Type is not application/json", nil)
-
-		// エラーレスポンスを返す
-		conversion.ResponseJson(ctx, http.StatusUnsupportedMediaType, nil)
-		return
-	}
-
 	// ユーザーUUIDを取得
 	userUuid, _ := ctx.Get("uuid")
 
 	// 構造体にバインド
 	var bShareSettingReview model.ShareSettingReview
-	err := ctx.ShouldBindJSON(&bShareSettingReview)
-	if err != nil {
-		logging.LogError("could not bind to json", nil)
-		conversion.ResponseJson(ctx, http.StatusBadRequest, nil)
-		return
+	customErr := conversion.BindJSON(ctx, &bShareSettingReview)
+	if customErr != nil {
+		conversion.ResponseJson(ctx, customErr.StatusCode(), nil)
 	}
-
 	bShareSettingReview.UserUuid = userUuid.(string)
 
 	// サービスに処理を投げる
@@ -330,7 +317,7 @@ func GetSpecificRestaurantReviewHandler(ctx *gin.Context) {
 	conversion.ResponseJson(ctx, http.StatusOK, res)
 }
 
-//レストランユーザーが自身の店舗のレビューを取得する
+// レストランユーザーが自身の店舗のレビューを取得する
 func GetOwnReviewsHandler(ctx *gin.Context) {
 	// 自身のUUIDを取得
 	userUuid, _ := ctx.Get("uuid")
