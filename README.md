@@ -1,5 +1,165 @@
-# food-shuffle-api
+# Food Shuffle API
 
-### Description
+## 概要 (Description)
 
-位置情報を介して飲食店のレビューを共有するアプリケーション [food Shuffle](https://github.com/Doremifa-donuts) の API サーバ
+Food Shuffle APIは、位置情報を活用して飲食店のレビューを共有するアプリケーション「[food Shuffle](https://github.com/Doremifa-donuts)」のバックエンドAPIサーバーです。
+
+ユーザーが街ですれ違うことで、お互いのおすすめレビューを交換できる飲食店情報共有サービスです。
+
+
+## 主な機能 (Features)
+### 一般ユーザー向け機能
+-   **アカウント管理**: メールアドレス、パスワード、電話番号認証による新規登録とログイン。
+-   **位置情報共有**: WebSocketを利用したリアルタイムな位置情報送信。
+-   **レビュー交換**: 付近のユーザーとすれ違うことで、設定したレビューを自動で交換・受信。
+-   **レビュー管理**:
+    -   飲食店のレビュー投稿（写真付き）。
+    -   受信したレビューを「興味あり」「興味なし」「いいね」で分類・管理。
+    -   自分が投稿・いいね・興味ありに分類したレビューの一覧表示。
+-   **店舗情報**:
+    -   店舗詳細情報の閲覧。
+    -   訪問した店舗（レビュー済み／未レビュー）の一覧表示。
+    -   店舗へのチェックイン機能。
+-   **予約機能**: 店舗への予約申し込みと、自身の予約状況の確認。
+-   **共有設定**:
+    -   すれ違い時に共有する自身のレビュー（最大3つ）を設定。
+    -   レビュー共有の通知モード（Active/Silent/Disabled）の切り替え。
+
+### レストランユーザー向け機能
+-   **店舗管理**:
+    -   自身の店舗情報の管理・閲覧。
+    -   コースメニューの登録・管理。
+-   **混雑状況の更新**: 店舗の混み具合（空き/余裕あり/満席）をリアルタイムで更新。
+-   **レビュー閲覧**: 自身の店舗に投稿されたレビューの一覧表示といいね数の確認。
+-   **予約管理**: 店舗に入った予約の一覧表示。
+-   **お助けブースト**: 緊急の集客キャンペーン（例：予約キャンセル発生時など）を作成し、近隣のユーザーに通知。
+-   **近隣ユーザー表示**: 店舗周辺にいる一般ユーザーの数を把握。
+
+## アーキテクチャ (Architecture)
+
+レイヤードアーキテクチャを採用して責務の分離を意識しています。
+
+-   `main.go`: アプリケーションのエントリーポイント。各種初期化処理を実行。
+-   `server`: Ginフレームワークの初期化とルーティング設定。
+-   `handler`: HTTPリクエストを受け取り、バリデーションを行い、適切なサービスを呼び出す。
+-   `service`: 中核となるビジネスロジックを実装。リポジトリ層を介してデータ操作を行う。
+-   `repository`: データ永続化のための抽象層。
+    -   `orm`: GORMを利用したMySQLとのやり取り。
+    -   `redis`: Redisを利用したキャッシュ（ユーザー仮登録）と位置情報管理。
+    -   `fireauth`: Firebase Admin SDKによる電話番号認証の検証。
+-   `middleware`: JWT認証やユーザー種別によるアクセス制御。
+-   `dto`: (Data Transfer Object) APIのレスポンスやリクエストに使用するデータ構造。
+-   `model`: GORMのデータベースモデル（テーブルスキーマ）。
+-   `ws`: WebSocketによるリアルタイム通信の管理。
+-   `utility`: 認証、画像処理、カスタムエラー、定数など、共通の補助機能。
+-   `public`: ユーザー登録用のシンプルなWebフロントエンド関連ファイル。
+
+## 使用技術 (Technologies)
+
+-   **言語**: Go      
+-   **フレームワーク**: Gin
+-   **ORM**: GORM　　
+-   **データベース**: MySQL
+-   **インメモリキャッシュ/ストア**: Redis (仮登録情報、位置情報Geo)
+-   **認証**:
+    -   Firebase Authentication (電話番号認証)
+    -   JWT (セッション管理)
+-   **リアルタイム通信**: WebSocket (Gorilla WebSocket)
+-   **その他**: Zap (ロギング), Cron (バッチ処理)
+
+## APIエンドポイント (API Endpoints)
+
+### 認証・登録
+| Method | Path                   | 認証 | 説明                                   |
+| :----- | :--------------------- | :--- | :------------------------------------- |
+| `POST` | `/v1/login`            | 不要 | ユーザーログイン                       |
+| `POST` | `/v1/pre-register`     | 不要 | 一般ユーザー仮登録（情報送信）         |
+| `POST` | `/v1/register`         | 不要 | 一般ユーザー本登録（Firebaseトークン検証） |
+| `GET`  | `/v1/auth/images/:id`  | 必要 | 画像ファイルを取得                     |
+
+---
+
+### 一般ユーザー (/v1/auth/users)
+| Method | Path                                   | 説明                                     |
+| :----- | :------------------------------------- | :--------------------------------------- |
+| `GET`  | `/places`                              | 訪問した場所のリストを取得               |
+| `GET`  | `/locations`                           | WebSocketで位置情報を共有するエンドポイント |
+| `PUT`  | `/mode/:status`                        | 共有モード（通知状態）を変更             |
+| `GET`  | `/reviews/receives`                    | 受信したレビュー（未分類）一覧を取得     |
+| `GET`  | `/reviews/interests`                   | 「興味あり」のレビュー一覧を取得         |
+| `GET`  | `/reviews/likes`                       | 「いいね」したレビュー一覧を取得         |
+| `POST` | `/reviews/posts`                       | 新規レビューを投稿                       |
+| `PUT`  | `/reviews/sets`                        | 共有するレビューを設定                   |
+| `PUT`  | `/:review_uuid/status/:review_status`  | レビューのステータスを更新               |
+| `GET`  | `/reservations/upcomings`              | 自身の今後の予約一覧を取得               |
+| `GET`  | `/restaurants/visited`                 | 訪問済み（未レビュー）の店舗一覧         |
+| `GET`  | `/restaurants/reviewed`                | レビュー投稿済みの店舗一覧               |
+| `GET`  | `/restaurants/:restaurant_uuid`        | 店舗詳細情報を取得                       |
+| `POST` | `/restaurants/:restaurant_uuid/reservations` | 店舗へ予約                               |
+| `GET`  | `/restaurants/:restaurant_uuid/posted` | 自分がその店に投稿したレビュー詳細を取得   |
+| `GET`  | `/restaurants/:restaurant_uuid/reviews`| その店に対して受信したレビュー一覧を取得   |
+| `POST` | `/restaurants/:restaurant_uuid/checkin`| 店舗へチェックイン                       |
+
+---
+
+### レストランユーザー (/v1/auth/restaurants)
+| Method | Path                   | 説明                                     |
+| :----- | :--------------------- | :--------------------------------------- |
+| `GET`  | `/`                    | 自身の店舗情報を取得                     |
+| `GET`  | `/courses`             | 自身の店舗のコース一覧を取得             |
+| `GET`  | `/reviews`             | 自身の店舗に投稿されたレビュー一覧を取得 |
+| `GET`  | `/nearby`              | 店舗周辺のユーザー数を取得               |
+| `GET`  | `/reservations`        | 店舗の予約一覧を取得                     |
+| `POST` | `/campaigns`           | お助けブースト（緊急キャンペーン）を作成 |
+| `PUT`  | `/mode/:status`        | 店舗の混雑状況を更新                     |
+
+## セットアップ (Getting Started)
+
+### 前提条件
+-   Go 1.23+
+-   MySQL
+-   Redis
+-   Docker (推奨)
+
+### インストール & 設定
+1.  **リポジトリをクローン**
+    ```sh
+    git clone [https://github.com/Doremifa-donuts/food-shuffle-api.git](https://github.com/Doremifa-donuts/food-shuffle-api.git)
+    cd food-shuffle-api
+    ```
+
+2.  **依存関係をインストール**
+    ```sh
+    go mod tidy
+    ```
+
+3.  **環境変数の設定**
+    ルートディレクトリに `.env` ファイルを作成し、以下の変数を設定します。
+
+    ```env
+    # Server Configuration
+    GO_PORT=5678
+
+    # Database Configuration
+    MYSQL_HOST=db_host
+    MYSQL_PORT=3306
+    MYSQL_USER=your_user
+    MYSQL_PASSWORD=your_password
+    MYSQL_DATABASE=food_shuffle
+
+    # JWT Configuration
+    JWT_SECRET_KEY=your_super_secret_key
+    JWT_TOKEN_LIFETIME=86400 # 24 hours in seconds
+
+    # Google Cloud / Firebase
+    # serviceAccountKey.jsonのパスを指定
+    GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
+    ```
+
+4.  **Firebaseサービスアカウントキー**
+    Firebaseプロジェクトからサービスアカウントキー（JSONファイル）をダウンロードし、プロジェクトのルートに `serviceAccountKey.json` という名前で配置してください。
+
+### 実行
+```sh
+go run main.go
+
